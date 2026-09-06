@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fulya | Başvurular</title>
+    <style>
+      :root { font-family: Georgia, serif; color: #1e3a4d; background: #e4f3ef; }
+      body { margin: 0; padding: 2rem; }
+      main { max-width: 1200px; margin: auto; }
+      .top { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1.5rem; }
+      .panel { padding: 1.5rem; border: 1px solid rgba(30,58,77,.14); border-radius: 18px; background: rgba(255,255,255,.88); box-shadow: 0 12px 28px rgba(20,38,52,.08); }
+      form { display: flex; gap: .75rem; max-width: 420px; }
+      input, button, select { min-height: 44px; padding: .65rem .8rem; border: 1px solid rgba(30,58,77,.2); border-radius: 8px; font: inherit; }
+      input { flex: 1; } button { cursor: pointer; background: #ffd96f; color: #1e3a4d; font-weight: 700; }
+      .error { color: #b93d3d; min-height: 1.5rem; } .hidden { display: none; }
+      .table-wrap { overflow-x: auto; } table { width: 100%; border-collapse: collapse; font-size: .9rem; } th, td { padding: .75rem; border-bottom: 1px solid rgba(30,58,77,.12); text-align: left; white-space: nowrap; }
+      th { background: #fff1bd; } .status { min-height: 34px; }
+      .capacity-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+      .capacity-card { padding: 1rem 1.1rem; border-radius: 14px; background: #e4f3ef; border: 1px solid rgba(30,58,77,.12); }
+      .capacity-card strong { display: block; font-size: 1.6rem; margin-top: .25rem; }
+      .capacity-card.full { background: #ffe0dc; color: #9c3936; }
+      .group-section { margin-bottom: 1.5rem; }
+      .group-section h2 { margin: 0; padding: 1rem 1.2rem; border-radius: 14px 14px 0 0; background: #e4f3ef; font-size: 1.2rem; }
+      .group-section:nth-of-type(2) h2 { background: #fff1bd; }
+      @media (max-width: 650px) { .capacity-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section id="login" class="panel">
+        <h1>Başvurular yönetimi</h1>
+        <p>Yönetim paneline girmek için şifrenizi yazın.</p>
+        <form id="login-form"><input type="password" name="password" placeholder="Yönetici şifresi" required /><button type="submit">Giriş yap</button></form>
+        <p id="login-error" class="error"></p>
+      </section>
+      <section id="dashboard" class="hidden">
+        <div class="top"><div><h1>Başvurular</h1><p>Yeni kayıtları buradan takip edebilirsiniz.</p></div><button id="logout">Çıkış yap</button></div>
+        <div class="capacity-grid"><div class="capacity-card" id="group-1-capacity">Grup 1 · 6 yaş<strong>0 / 20 çocuk</strong></div><div class="capacity-card" id="group-2-capacity">Grup 2 · 7–8 yaş<strong>0 / 20 çocuk</strong></div></div>
+        <section class="group-section"><h2>Grup 1 · 6 yaş</h2><div class="panel table-wrap"><table><thead><tr><th>Tarih</th><th>Çocuk</th><th>Doğum tarihi</th><th>Sınıf</th><th>Anne</th><th>Baba</th><th>Straße</th><th>PLZ</th><th>Stadt</th><th>E-posta</th><th>Telefon</th><th>Durum</th></tr></thead><tbody id="group-1-registrations"></tbody></table><p id="group-1-empty">Bu grupta henüz başvuru bulunmuyor.</p></div></section>
+        <section class="group-section"><h2>Grup 2 · 7–8 yaş</h2><div class="panel table-wrap"><table><thead><tr><th>Tarih</th><th>Çocuk</th><th>Doğum tarihi</th><th>Sınıf</th><th>Anne</th><th>Baba</th><th>Straße</th><th>PLZ</th><th>Stadt</th><th>E-posta</th><th>Telefon</th><th>Durum</th></tr></thead><tbody id="group-2-registrations"></tbody></table><p id="group-2-empty">Bu grupta henüz başvuru bulunmuyor.</p></div></section>
+      </section>
+    </main>
+    <script>
+      const login = document.querySelector('#login');
+      const dashboard = document.querySelector('#dashboard');
+      const errorElement = document.querySelector('#login-error');
+      const tableBodies = { 'Grup 1': document.querySelector('#group-1-registrations'), 'Grup 2': document.querySelector('#group-2-registrations') };
+      const emptyElements = { 'Grup 1': document.querySelector('#group-1-empty'), 'Grup 2': document.querySelector('#group-2-empty') };
+      const capacityElements = { 'Grup 1': document.querySelector('#group-1-capacity'), 'Grup 2': document.querySelector('#group-2-capacity') };
+      const loadRegistrations = async () => {
+        const response = await fetch('/api/admin/registrations');
+        if (response.status === 401) { login.classList.remove('hidden'); dashboard.classList.add('hidden'); return; }
+        const registrations = await response.json();
+        ['Grup 1', 'Grup 2'].forEach((group) => { const groupRegistrations = registrations.filter((item) => item.group === group); const count = groupRegistrations.length; capacityElements[group].querySelector('strong').textContent = `${count} / 20 çocuk`; capacityElements[group].classList.toggle('full', count >= 20); emptyElements[group].hidden = count > 0; tableBodies[group].innerHTML = groupRegistrations.map((item) => { const address = String(item.address || '').split(',').map((part) => part.trim()); return `<tr><td>${new Date(item.created_at).toLocaleString('tr-TR')}</td><td>${item.first_name} ${item.last_name}</td><td>${item.birth_date}</td><td>${item.class_level}</td><td>${item.mother_name}</td><td>${item.father_name || '-'}</td><td>${address[0] || ''}</td><td>${address[1] || ''}</td><td>${address.slice(2).join(', ')}</td><td>${item.email}</td><td>${item.phone}</td><td><select class="status" data-id="${item._id}">${['Neu', 'Kontaktiert', 'Bezahlt', 'Abgeschlossen'].map((status) => `<option ${status === item.status ? 'selected' : ''}>${status}</option>`).join('')}</select></td></tr>`; }).join(''); });
+        login.classList.add('hidden'); dashboard.classList.remove('hidden');
+        document.querySelectorAll('.status').forEach((select) => select.addEventListener('change', async () => { const response = await fetch('/api/admin/registrations/' + select.dataset.id + '/status', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: select.value }) }); const result = await response.json(); if (result.success && ['Kontaktiert', 'Bezahlt'].includes(select.value) && !result.emailConfigured) alert('Status gespeichert, aber keine E-Mail gesendet: Bitte SMTP-Daten in der .env ergänzen.'); else if (!response.ok) alert(result.error || 'Status konnte nicht gespeichert werden.'); }));
+      };
+      document.querySelector('#login-form').addEventListener('submit', async (event) => { event.preventDefault(); errorElement.textContent = ''; const response = await fetch('/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: new FormData(event.target).get('password') }) }); if (!response.ok) { errorElement.textContent = (await response.json()).error; return; } loadRegistrations(); });
+      document.querySelector('#logout').addEventListener('click', async () => { await fetch('/admin/logout', { method: 'POST' }); login.classList.remove('hidden'); dashboard.classList.add('hidden'); });
+      loadRegistrations();
+    </script>
+  </body>
+</html>

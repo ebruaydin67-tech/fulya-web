@@ -1,0 +1,21 @@
+{
+  "name": "fulya-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fulya registration website with a private admin area",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "helmet": "^7.1.0",
+    "nedb-promises": "^6.2.4",
+    "nodemailer": "^6.9.15",
+    "qrcode": "^1.5.4"
+  }
+}

@@ -1,0 +1,183 @@
+require('dotenv').config();
+
+const path = require('path');
+const fs = require('fs');
+const express = require('express');
+const session = require('express-session');
+const helmet = require('helmet');
+const bcrypt = require('bcryptjs');
+const Datastore = require('nedb-promises');
+const nodemailer = require('nodemailer');
+const QRCode = require('qrcode');
+
+const app = express();
+const port = Number(process.env.PORT) || 3000;
+const GROUP_CAPACITY = 20;
+const dataDirectory = path.join(__dirname, 'data');
+fs.mkdirSync(dataDirectory, { recursive: true });
+
+const database = Datastore.create({ filename: path.join(dataDirectory, 'registrations.db'), autoload: true });
+
+const mailTransport = process.env.MAIL_HOST && process.env.MAIL_USER && process.env.MAIL_PASSWORD
+  ? nodemailer.createTransport({
+      host: process.env.MAIL_HOST,
+      port: Number(process.env.MAIL_PORT) || 587,
+      secure: String(process.env.MAIL_PORT) === '465',
+      auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASSWORD }
+    })
+  : null;
+
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use('/api', (request, response, next) => {
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (request.method === 'OPTIONS') return response.sendStatus(204);
+  return next();
+});
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'change-this-session-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 8 * 60 * 60 * 1000 }
+}));
+app.get('/api/transfer-qr', async (request, response) => {
+  try {
+    const qrData = [
+      'Überweisung',
+      'Empfänger: HumanSufi Culture & Arts e.V.',
+      'IBAN: DE14340500000012105466',
+      'Verwendungszweck: Name und Nachname des Kindes'
+    ].join('\n');
+    const qrDataUrl = await QRCode.toDataURL(qrData, { width: 220, margin: 2, color: { dark: '#1e3a4d', light: '#ffffff' } });
+    response.type('png').send(Buffer.from(qrDataUrl.split(',')[1], 'base64'));
+  } catch (error) {
+    response.status(500).send('QR-Code konnte nicht erstellt werden.');
+  }
+});
+app.use(express.static(__dirname, { index: 'index.html' }));
+
+const requireAdmin = (request, response, next) => {
+  if (request.session.isAdmin) return next();
+  return response.status(401).json({ error: 'Yetkisiz erişim.' });
+};
+
+const getAgeFromBirthDate = (value) => {
+  const birthDate = new Date(`${value}T00:00:00`);
+  if (!value || Number.isNaN(birthDate.getTime())) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDifference = today.getMonth() - birthDate.getMonth();
+  const dayDifference = today.getDate() - birthDate.getDate();
+  if (monthDifference < 0 || (monthDifference === 0 && dayDifference < 0)) age -= 1;
+  return age;
+};
+
+const sendStatusNotification = async (registration, status) => {
+  if (!mailTransport || !registration.email) return false;
+
+  const isPaid = status === 'Bezahlt';
+  const subject = isPaid ? 'Ihre Zahlung wurde bestätigt' : 'Rückmeldung zu Ihrer Anmeldung';
+  const message = isPaid
+    ? `Guten Tag,\n\nwir bestätigen den Zahlungseingang für die Anmeldung von ${registration.first_name} ${registration.last_name}. Ihre Registrierung ist damit abgeschlossen.\n\nViele Grüße\nFulya Academy`
+    : `Guten Tag,\n\nwir haben Ihre Anmeldung für ${registration.first_name} ${registration.last_name} erhalten und werden uns bezüglich der weiteren Schritte bei Ihnen melden.\n\nViele Grüße\nFulya Academy`;
+
+  await mailTransport.sendMail({
+    from: process.env.MAIL_FROM || process.env.MAIL_USER,
+    to: registration.email,
+    subject,
+    text: message
+  });
+  return true;
+};
+
+app.post('/api/registrations', async (request, response) => {
+  const body = request.body;
+  const requiredFields = ['ad', 'soyad', 'dogum_tarihi', 'sinif', 'anne_adi', 'adres_strasse', 'adres_plz', 'adres_stadt', 'email', 'telefon', 'alerji'];
+  if (requiredFields.some((field) => !String(body[field] || '').trim()) || !body.datenschutz || !body.whatsapp_izni) {
+    return response.status(400).json({ error: 'Lütfen tüm zorunlu alanları doldurun.' });
+  }
+
+  try {
+    const age = getAgeFromBirthDate(String(body.dogum_tarihi).trim());
+    const group = age === 6 ? 'Grup 1' : age === 7 || age === 8 ? 'Grup 2' : null;
+    if (!group) {
+      return response.status(400).json({ error: 'Bu başvuru yalnızca 6–8 yaş aralığındaki çocuklar için uygundur.' });
+    }
+
+    const groupCount = await database.count({ group });
+    if (groupCount >= GROUP_CAPACITY) {
+      return response.status(409).json({ error: `${group} kapasitesi dolu. Bu grup için artık başvuru kabul edilemiyor.` });
+    }
+
+    const registration = await database.insert({
+      created_at: new Date().toISOString(),
+      program: String(body.program || 'Çocuk Kulübü').trim(),
+      first_name: String(body.ad).trim(),
+      last_name: String(body.soyad).trim(),
+      birth_date: String(body.dogum_tarihi).trim(),
+      age,
+      group,
+      class_level: String(body.sinif).trim(),
+      mother_name: String(body.anne_adi).trim(),
+      father_name: String(body.baba_adi || '').trim(),
+      address: [body.adres_strasse, body.adres_plz, body.adres_stadt].map((part) => String(part || '').trim()).join(', '),
+      email: String(body.email).trim(),
+      phone: String(body.telefon).trim(),
+      allergies: String(body.alerji).trim(),
+      whatsapp_consent: Boolean(body.whatsapp_izni),
+      privacy_consent: Boolean(body.datenschutz),
+      status: 'Neu'
+    });
+    return response.status(201).json({ success: true, id: registration._id, group });
+  } catch (error) {
+    return response.status(500).json({ error: 'Başvuru kaydedilemedi.' });
+  }
+});
+
+app.post('/admin/login', async (request, response) => {
+  const password = String(request.body.password || '');
+  const configuredPassword = process.env.ADMIN_PASSWORD || '';
+  if (!configuredPassword || !(await bcrypt.compare(password, await bcrypt.hash(configuredPassword, 10)))) {
+    return response.status(401).json({ error: 'Şifre hatalı.' });
+  }
+  request.session.isAdmin = true;
+  return response.json({ success: true });
+});
+
+app.post('/admin/logout', (request, response) => {
+  request.session.destroy(() => response.json({ success: true }));
+});
+
+app.get('/api/admin/registrations', requireAdmin, async (request, response) => {
+  const registrations = await database.find({}).sort({ created_at: -1 });
+  return response.json(registrations);
+});
+
+app.patch('/api/admin/registrations/:id/status', requireAdmin, async (request, response) => {
+  const allowedStatuses = ['Neu', 'Kontaktiert', 'Bezahlt', 'Abgeschlossen'];
+  const status = String(request.body.status || '');
+  if (!allowedStatuses.includes(status)) return response.status(400).json({ error: 'Ungültiger Status.' });
+  const registration = await database.findOne({ _id: request.params.id });
+  if (!registration) return response.status(404).json({ error: 'Anmeldung nicht gefunden.' });
+
+  await database.update({ _id: request.params.id }, { $set: { status } });
+  let emailSent = false;
+  if (registration.status !== status && ['Kontaktiert', 'Bezahlt'].includes(status)) {
+    try {
+      emailSent = await sendStatusNotification(registration, status);
+    } catch (error) {
+      console.error('Status-E-Mail konnte nicht gesendet werden:', error.message);
+    }
+  }
+
+  return response.json({ success: true, emailSent, emailConfigured: Boolean(mailTransport) });
+});
+
+app.get('/admin', (request, response) => response.sendFile(path.join(__dirname, 'admin.html')));
+
+app.listen(port, () => {
+  console.log(`Fulya server running at http://localhost:${port}`);
+});
