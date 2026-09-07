@@ -358,6 +358,7 @@
   /* ---------- Zusammenfassung vor dem Absenden ---------- */
   const SUMMARY_ROWS = [
     { label: 'Çocuk', build: (get) => `${get('ad')} ${get('soyad')}`.trim() },
+    { label: 'Cinsiyet', build: (get) => get('cinsiyet') },
     { label: 'Doğum tarihi', build: (get) => formatDisplayDate(get('dogum_tarihi')) },
     { label: 'Sınıf', build: (get) => get('sinif') },
     { label: 'Anne', build: (get) => get('anne_adi') },

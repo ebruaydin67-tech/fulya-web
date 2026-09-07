@@ -16,6 +16,8 @@
   const dashboard = document.querySelector('#dashboard');
   const loginError = document.querySelector('#login-error');
   const notice = document.querySelector('#admin-notice');
+  const testEmailInput = document.querySelector('#test-email');
+  const testMailButton = document.querySelector('#send-test-mail');
 
   const tableBodies = {
     'Grup 1': document.querySelector('#group-1-registrations'),
@@ -29,6 +31,8 @@
     'Grup 1': document.querySelector('#group-1-capacity'),
     'Grup 2': document.querySelector('#group-2-capacity')
   };
+  const tableState = Object.fromEntries(GROUPS.map((group) => [group, { rows: [], search: '', status: '', sortKey: 'created_at', sortDirection: 'desc' }]));
+  const tableLabels = ['Tarih', 'Çocuk', 'Cinsiyet', 'Doğum tarihi', 'Sınıf', 'Anne', 'Baba', 'Straße', 'PLZ', 'Stadt', 'E-posta', 'Telefon', 'Alerji', 'Durum'];
 
   /* ---------- Meldungen ---------- */
   let noticeTimer;
@@ -119,6 +123,7 @@
     row.append(
       cell(formatDateTime(item.created_at)),
       cell(`${item.first_name || ''} ${item.last_name || ''}`.trim()),
+      cell(item.gender),
       cell(formatDate(item.birth_date)),
       cell(item.class_level),
       cell(item.mother_name),
@@ -132,6 +137,60 @@
       statusCell(item)
     );
     return row;
+  };
+
+  const rowName = (item) => `${item.first_name || ''} ${item.last_name || ''}`.trim();
+
+  const rowValues = (item) => {
+    const address = splitAddress(item.address);
+    return [
+      formatDateTime(item.created_at), rowName(item), item.gender, formatDate(item.birth_date), item.class_level,
+      item.mother_name, item.father_name, address.street, address.postalCode, address.city,
+      item.email, item.phone, item.allergies, item.status
+    ].map((value) => String(value || ''));
+  };
+
+  const sortValue = (item, key) => {
+    if (key === 'name') return rowName(item).toLocaleLowerCase('tr-TR');
+    if (key === 'created_at' || key === 'birth_date') return new Date(item[key] || 0).getTime() || 0;
+    return String(item[key] || '').toLocaleLowerCase('tr-TR');
+  };
+
+  const visibleRows = (group) => {
+    const state = tableState[group];
+    const search = state.search.toLocaleLowerCase('tr-TR');
+    return state.rows
+      .filter((item) => !state.status || item.status === state.status)
+      .filter((item) => !search || rowValues(item).some((value) => value.toLocaleLowerCase('tr-TR').includes(search)))
+      .sort((left, right) => {
+        const a = sortValue(left, state.sortKey);
+        const b = sortValue(right, state.sortKey);
+        const comparison = typeof a === 'number' && typeof b === 'number' ? a - b : String(a).localeCompare(String(b), 'tr-TR');
+        return state.sortDirection === 'asc' ? comparison : -comparison;
+      });
+  };
+
+  const renderGroup = (group) => {
+    const rows = visibleRows(group);
+    tableBodies[group].replaceChildren(...rows.map(buildRow));
+    emptyNotes[group].textContent = rows.length ? `${rows.length} başvuru gösteriliyor.` : 'Bu filtrelerle eşleşen başvuru bulunmuyor.';
+    emptyNotes[group].hidden = rows.length > 0;
+    document.querySelectorAll(`[data-sort-group="${group}"]`).forEach((button) => {
+      const indicator = button.querySelector('.sort-indicator');
+      if (indicator) indicator.textContent = button.dataset.sortKey === tableState[group].sortKey ? (tableState[group].sortDirection === 'asc' ? ' ↑' : ' ↓') : '';
+    });
+  };
+
+  const csvEscape = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+  const exportCsv = (group) => {
+    const lines = [tableLabels.map(csvEscape).join(';'), ...visibleRows(group).map((item) => rowValues(item).map(csvEscape).join(';'))];
+    const blob = new Blob([`\uFEFF${lines.join('\r\n')}`], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `fulya-${group.toLocaleLowerCase('tr-TR').replace(/\s+/g, '-')}-anmeldungen.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
   };
 
   /* ---------- Status ändern ---------- */
@@ -190,13 +249,13 @@
 
       GROUPS.forEach((group) => {
         const rows = registrations.filter((item) => item.group === group);
+        tableState[group].rows = rows;
         const card = capacityCards[group];
 
         card.querySelector('strong').textContent = `${rows.length} / ${CAPACITY} çocuk`;
         card.classList.toggle('full', rows.length >= CAPACITY);
 
-        emptyNotes[group].hidden = rows.length > 0;
-        tableBodies[group].replaceChildren(...rows.map(buildRow));
+        renderGroup(group);
       });
 
       login.classList.add('hidden');
@@ -240,6 +299,52 @@
     await fetch('/admin/logout', { method: 'POST' });
     login.classList.remove('hidden');
     dashboard.classList.add('hidden');
+  });
+
+  document.querySelectorAll('[data-sort-group]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const state = tableState[button.dataset.sortGroup];
+      if (state.sortKey === button.dataset.sortKey) state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+      else { state.sortKey = button.dataset.sortKey; state.sortDirection = 'asc'; }
+      renderGroup(button.dataset.sortGroup);
+    });
+  });
+
+  GROUPS.forEach((group) => {
+    document.querySelector(`#${group === 'Grup 1' ? 'group-1' : 'group-2'}-search`).addEventListener('input', (event) => {
+      tableState[group].search = event.target.value.trim();
+      renderGroup(group);
+    });
+    document.querySelector(`#${group === 'Grup 1' ? 'group-1' : 'group-2'}-status-filter`).addEventListener('change', (event) => {
+      tableState[group].status = event.target.value;
+      renderGroup(group);
+    });
+  });
+
+  document.querySelectorAll('[data-export-group]').forEach((button) => {
+    button.addEventListener('click', () => exportCsv(button.dataset.exportGroup));
+  });
+
+  testMailButton.addEventListener('click', async () => {
+    const to = testEmailInput.value.trim();
+    if (!to) {
+      flash('Bitte zuerst eine Test-E-Mail-Adresse eingeben.', false);
+      return;
+    }
+    testMailButton.disabled = true;
+    try {
+      const response = await fetch('/api/admin/email-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, status: 'Kontaktiert' })
+      });
+      const result = await response.json().catch(() => ({}));
+      flash(result.success ? 'Testmail wurde gesendet.' : (result.error || 'Testmail konnte nicht gesendet werden.'), Boolean(result.success));
+    } catch (error) {
+      flash('Testmail konnte nicht gesendet werden.', false);
+    } finally {
+      testMailButton.disabled = false;
+    }
   });
 
   loadRegistrations();

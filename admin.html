@@ -5,31 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <title>Fulya | Başvurular</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
-      :root { font-family: Georgia, serif; color: #1e3a4d; background: #e4f3ef; }
-      body { margin: 0; padding: 2rem; }
-      main { max-width: 1200px; margin: auto; }
-      .top { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1.5rem; }
-      .panel { padding: 1.5rem; border: 1px solid rgba(30,58,77,.14); border-radius: 18px; background: rgba(255,255,255,.88); box-shadow: 0 12px 28px rgba(20,38,52,.08); }
-      form { display: flex; gap: .75rem; max-width: 420px; }
-      input, button, select { min-height: 44px; padding: .65rem .8rem; border: 1px solid rgba(30,58,77,.2); border-radius: 8px; font: inherit; }
-      input { flex: 1; } button { cursor: pointer; background: #ffd96f; color: #1e3a4d; font-weight: 700; }
+      :root { font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1e3a4d; background: linear-gradient(180deg, #e4f3ef, #fff8e9); }
+      body { min-height: 100vh; margin: 0; padding: clamp(1.25rem, 4vw, 3.5rem) clamp(1rem, 4vw, 3rem); background: linear-gradient(180deg, #e4f3ef, #fff8e9); }
+      main { width: min(1280px, 100%); margin: auto; }
+      .top { display: flex; justify-content: space-between; gap: 1.5rem; align-items: flex-start; margin-bottom: 2rem; }
+      .top h1 { margin: 0 0 .35rem; font-size: clamp(2rem, 4vw, 3.1rem); letter-spacing: -.05em; line-height: 1; }
+      .top p { margin: 0; color: #52656d; }
+      .panel { padding: clamp(1rem, 2.5vw, 1.75rem); border: 1px solid rgba(30,58,77,.13); border-radius: 24px; background: rgba(255,255,255,.84); box-shadow: 0 20px 45px rgba(19,44,57,.08); }
+      form { display: flex; gap: .75rem; max-width: 440px; margin-top: 1.5rem; }
+      input, button, select { min-height: 46px; padding: .7rem .9rem; border: 1px solid rgba(30,58,77,.16); border-radius: 14px; font: inherit; }
+      input, select { background: rgba(255,255,255,.9); color: #1e3a4d; }
+      input:focus, select:focus, button:focus-visible { outline: 3px solid rgba(66,183,189,.25); outline-offset: 2px; border-color: #42b7bd; }
+      input { flex: 1; } button { cursor: pointer; background: #ffd96f; color: #1e3a4d; font-weight: 800; transition: transform .18s ease, box-shadow .18s ease; }
+      button:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(30,58,77,.12); }
       .error { color: #b93d3d; min-height: 1.5rem; } .hidden { display: none; }
       [hidden] { display: none !important; }
-      .table-wrap { overflow-x: auto; } table { width: 100%; border-collapse: collapse; font-size: .9rem; } th, td { padding: .75rem; border-bottom: 1px solid rgba(30,58,77,.12); text-align: left; white-space: nowrap; }
-      th { background: #fff1bd; } .status { min-height: 34px; }
-      .capacity-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-      .capacity-card { padding: 1rem 1.1rem; border-radius: 14px; background: #e4f3ef; border: 1px solid rgba(30,58,77,.12); }
-      .capacity-card strong { display: block; font-size: 1.6rem; margin-top: .25rem; }
+      .table-wrap { overflow-x: auto; padding: 0 0 1rem; } table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .88rem; } th, td { padding: .9rem 1rem; border-bottom: 1px solid rgba(30,58,77,.1); text-align: left; white-space: nowrap; }
+      th { background: #fff1bd; color: #1e3a4d; font-size: .78rem; letter-spacing: .03em; text-transform: uppercase; } tbody tr:hover { background: rgba(228,243,239,.45); } .status { min-height: 36px; padding: .45rem .65rem; border-radius: 10px; }
+      .capacity-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
+      .capacity-card { padding: 1.25rem 1.4rem; border-radius: 18px; background: rgba(228,243,239,.72); border: 1px solid rgba(30,58,77,.12); }
+      .capacity-card strong { display: block; margin-top: .4rem; color: #278b9b; font-size: 1.8rem; line-height: 1; }
       .capacity-card.full { background: #ffe0dc; color: #9c3936; }
-      .group-section { margin-bottom: 1.5rem; }
-      .group-section h2 { margin: 0; padding: 1rem 1.2rem; border-radius: 14px 14px 0 0; background: #e4f3ef; font-size: 1.2rem; }
+      .group-section { margin-bottom: 2.25rem; }
+      .group-section h2 { margin: 0; padding: 1.1rem 1.35rem; border-radius: 18px 18px 0 0; background: #e4f3ef; font-size: 1.25rem; }
       .group-section:nth-of-type(2) h2 { background: #fff1bd; }
       .notice { margin: 0 0 1rem; padding: .8rem 1rem; border-radius: 12px; font-size: .92rem; display: none; }
       .notice.shown { display: block; }
       .notice.ok { background: rgba(66,183,189,.14); border: 1px solid rgba(66,183,189,.45); color: #1c6d75; }
       .notice.bad { background: rgba(223,85,80,.1); border: 1px solid rgba(223,85,80,.4); color: #a83b37; }
-      @media (max-width: 650px) { .capacity-grid { grid-template-columns: 1fr; } body { padding: 1rem; } }
+      .mail-tools { display: flex; flex-wrap: wrap; gap: .85rem 1rem; align-items: center; margin: 0 0 2rem; padding: 1rem 1.2rem; border: 1px solid rgba(66,183,189,.2); border-radius: 18px; background: rgba(255,255,255,.54); }
+      .mail-tools input { min-width: 260px; }
+      .mail-tools button { background: #ffd96f; }
+      .table-tools { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; padding: 1.2rem 1.2rem 1rem; background: rgba(228,243,239,.25); }
+      .table-tools input { min-width: 240px; }
+      .table-tools select { min-width: 160px; }
+      .table-tools button { background: #42b7bd; color: white; }
+      th button { min-height: auto; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; font: inherit; font-weight: 800; cursor: pointer; text-align: left; }
+      th button:hover, th button:focus-visible { color: #df5550; }
+      .sort-indicator { color: #278b9b; }
+      @media (max-width: 650px) { .top { flex-direction: column; } .top > button { align-self: stretch; } form { flex-direction: column; } .capacity-grid { grid-template-columns: 1fr; } body { padding: 1rem; } .mail-tools, .table-tools { align-items: stretch; } .mail-tools > *, .table-tools > * { width: 100%; min-width: 0; } }
     </style>
   </head>
   <body>
@@ -55,6 +73,13 @@
 
         <p id="admin-notice" class="notice"></p>
 
+        <div class="mail-tools">
+          <a href="/api/admin/email-preview?status=Kontaktiert" target="_blank" rel="noopener">Mail-Vorschau: Kontaktiert</a>
+          <a href="/api/admin/email-preview?status=Bezahlt" target="_blank" rel="noopener">Mail-Vorschau: Bezahlt</a>
+          <input id="test-email" type="email" placeholder="Test-E-Mail-Adresse" />
+          <button id="send-test-mail" type="button">Testmail senden</button>
+        </div>
+
         <div class="capacity-grid">
           <div class="capacity-card" id="group-1-capacity">Grup 1 · 6 yaş<strong>0 / 20 çocuk</strong></div>
           <div class="capacity-card" id="group-2-capacity">Grup 2 · 7–8 yaş<strong>0 / 20 çocuk</strong></div>
@@ -63,12 +88,20 @@
         <section class="group-section">
           <h2>Grup 1 · 6 yaş</h2>
           <div class="panel table-wrap">
+            <div class="table-tools">
+              <input id="group-1-search" type="search" placeholder="Bu tabloyu ara..." aria-label="Grup 1 arama" />
+              <select id="group-1-status-filter" aria-label="Grup 1 durum filtresi">
+                <option value="">Tüm durumlar</option>
+                <option value="Neu">Neu</option><option value="Kontaktiert">Kontaktiert</option><option value="Bezahlt">Bezahlt</option><option value="Abgeschlossen">Abgeschlossen</option>
+              </select>
+              <button type="button" data-export-group="Grup 1">CSV indir</button>
+            </div>
             <table>
               <thead>
                 <tr>
-                  <th>Tarih</th><th>Çocuk</th><th>Doğum tarihi</th><th>Sınıf</th>
+                  <th><button type="button" data-sort-group="Grup 1" data-sort-key="created_at">Tarih <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="name">Çocuk <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="gender">Cinsiyet <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="birth_date">Doğum tarihi <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="class_level">Sınıf <span class="sort-indicator"></span></button></th>
                   <th>Anne</th><th>Baba</th><th>Straße</th><th>PLZ</th><th>Stadt</th>
-                  <th>E-posta</th><th>Telefon</th><th>Alerji</th><th>Durum</th>
+                  <th>E-posta</th><th>Telefon</th><th>Alerji</th><th><button type="button" data-sort-group="Grup 1" data-sort-key="status">Durum <span class="sort-indicator"></span></button></th>
                 </tr>
               </thead>
               <tbody id="group-1-registrations"></tbody>
@@ -80,12 +113,20 @@
         <section class="group-section">
           <h2>Grup 2 · 7–8 yaş</h2>
           <div class="panel table-wrap">
+            <div class="table-tools">
+              <input id="group-2-search" type="search" placeholder="Bu tabloyu ara..." aria-label="Grup 2 arama" />
+              <select id="group-2-status-filter" aria-label="Grup 2 durum filtresi">
+                <option value="">Tüm durumlar</option>
+                <option value="Neu">Neu</option><option value="Kontaktiert">Kontaktiert</option><option value="Bezahlt">Bezahlt</option><option value="Abgeschlossen">Abgeschlossen</option>
+              </select>
+              <button type="button" data-export-group="Grup 2">CSV indir</button>
+            </div>
             <table>
               <thead>
                 <tr>
-                  <th>Tarih</th><th>Çocuk</th><th>Doğum tarihi</th><th>Sınıf</th>
+                  <th><button type="button" data-sort-group="Grup 2" data-sort-key="created_at">Tarih <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="name">Çocuk <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="gender">Cinsiyet <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="birth_date">Doğum tarihi <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="class_level">Sınıf <span class="sort-indicator"></span></button></th>
                   <th>Anne</th><th>Baba</th><th>Straße</th><th>PLZ</th><th>Stadt</th>
-                  <th>E-posta</th><th>Telefon</th><th>Alerji</th><th>Durum</th>
+                  <th>E-posta</th><th>Telefon</th><th>Alerji</th><th><button type="button" data-sort-group="Grup 2" data-sort-key="status">Durum <span class="sort-indicator"></span></button></th>
                 </tr>
               </thead>
               <tbody id="group-2-registrations"></tbody>

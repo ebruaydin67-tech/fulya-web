@@ -73,7 +73,7 @@
       <section class="notice-bar">
         <div class="container">
           <button type="button" class="notice-text notice-cta" data-scroll-target="#basvuru" aria-label="Başvuru formuna git">
-            SINIRLI KONTENJAN • KAYIT İÇİN İLETİŞİME GEÇİN
+            SINIRLI KONTENJAN
           </button>
         </div>
       </section>
@@ -158,27 +158,8 @@
               </ol>
             </div>
 
-            <div class="program-detail-block">
-              <div class="program-heading">
-                <span class="program-icon">⏰</span>
-                <h3>Günlük Program Akışı</h3>
-              </div>
-              <ul class="schedule-list">
-                <li><span>09:45–10:00</span> <strong>Giriş ve karşılama</strong></li>
-                <li><span>10:00–11:00</span> <strong>Birinci ders</strong></li>
-                <li><span>11:00–12:00</span> <strong>İkinci ders</strong></li>
-                <li><span>12:00–12:45</span> <strong>Lokma</strong></li>
-                <li><span>12:45–13:30</span> <strong>Meşk</strong></li>
-                <li><span>13:30–13:45</span> <strong>Oyun saati</strong></li>
-                <li><span>13:45–14:00</span> <strong>Kapanış</strong></li>
-              </ul>
-            </div>
           </div>
 
-          <div class="secondary-programs">
-            <span>Diğer programlar:</span>
-            <a href="#basvuru">Genç Kızlarla Eğitim</a>
-          </div>
         </div>
       </section>
 
@@ -207,15 +188,6 @@
           </div>
 
           <div class="activities-card">
-            <p class="eyebrow">Faaliyetlerimiz</p>
-            <ul>
-              <li>Buluşma ve tanışma ortamı</li>
-              <li>Geleneksel Meşk ile müzikal sunumlar</li>
-              <li>Sufi eserlerinin edebi işlenişi ve çevirileri</li>
-              <li>Geleneksel Sufi sanatı sergileri (Ebru ve Hat sanatı)</li>
-              <li>Atölyeler, seminerler, tartışma grupları ve festivaller</li>
-              <li>Sufi Devranı ve geleneksel Sema töreni</li>
-            </ul>
             <a class="text-link" href="https://human-culture.com" target="_blank" rel="noopener noreferrer">human-culture.com →</a>
           </div>
         </div>
@@ -225,7 +197,6 @@
         <div class="container pricing-wrap">
           <div class="price-card featured">
             <div class="tag">Katılım</div>
-            <h3>Çocuk Kulübü</h3>
             <div class="price-line">
               <span class="amount">20 €</span>
             </div>
@@ -352,6 +323,17 @@
                   </label>
                   <p class="field-error" role="alert"></p>
                 </div>
+                <div class="field">
+                  <label for="cinsiyet">
+                    Cinsiyet
+                    <select id="cinsiyet" name="cinsiyet" required>
+                      <option value="">Bitte auswählen</option>
+                      <option value="Kız">Kız</option>
+                      <option value="Erkek">Erkek</option>
+                    </select>
+                  </label>
+                  <p class="field-error" role="alert"></p>
+                </div>
               </div>
 
               <div class="field-row">
@@ -374,7 +356,13 @@
               <div class="field">
                 <label for="sinif">
                   Okulda kaçıncı sınıfta?
-                  <input type="text" id="sinif" name="sinif" placeholder="Örnek: 2. sınıf" required />
+                  <select id="sinif" name="sinif" required>
+                    <option value="">Sınıf seçin</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                  </select>
                 </label>
                 <p class="field-error" role="alert"></p>
               </div>

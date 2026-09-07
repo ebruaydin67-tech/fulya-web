@@ -111,7 +111,7 @@ const sendStatusNotification = (registration, status) =>
 
 app.post('/api/registrations', async (request, response) => {
   const body = request.body;
-  const requiredFields = ['ad', 'soyad', 'dogum_tarihi', 'sinif', 'anne_adi', 'adres_strasse', 'adres_plz', 'adres_stadt', 'email', 'telefon', 'alerji'];
+  const requiredFields = ['ad', 'soyad', 'cinsiyet', 'dogum_tarihi', 'sinif', 'anne_adi', 'adres_strasse', 'adres_plz', 'adres_stadt', 'email', 'telefon', 'alerji'];
   if (requiredFields.some((field) => !String(body[field] || '').trim()) || !body.datenschutz || !body.whatsapp_izni) {
     return response.status(400).json({ error: 'Lütfen tüm zorunlu alanları doldurun.' });
   }
@@ -133,6 +133,7 @@ app.post('/api/registrations', async (request, response) => {
       program: String(body.program || 'Çocuk Kulübü').trim(),
       first_name: String(body.ad).trim(),
       last_name: String(body.soyad).trim(),
+      gender: String(body.cinsiyet).trim(),
       birth_date: String(body.dogum_tarihi).trim(),
       age,
       group,
@@ -204,6 +205,40 @@ app.patch('/api/admin/registrations/:id/status', requireAdmin, async (request, r
   }
 
   return response.json({ success: true, emailSent, emailConfigured: mailer.isConfigured() });
+});
+
+const exampleRegistration = {
+  first_name: 'Ayşe',
+  last_name: 'Yılmaz',
+  gender: 'Kız',
+  birth_date: '2019-04-12',
+  age: 7,
+  group: 'Grup 2',
+  class_level: '2. Sınıf',
+  mother_name: 'Zeynep Yılmaz',
+  father_name: 'Mehmet Yılmaz',
+  address: 'Ehringhausen 25, 42859, Remscheid',
+  email: 'veli@example.com',
+  phone: '0176 23716945',
+  allergies: 'Yok'
+};
+
+app.get('/api/admin/email-preview', requireAdmin, (request, response) => {
+  const status = request.query.status === 'Bezahlt' ? 'Bezahlt' : 'Kontaktiert';
+  const preview = templates.statusUpdate(exampleRegistration, status);
+  response.type('html').send(preview.html);
+});
+
+app.post('/api/admin/email-test', requireAdmin, async (request, response) => {
+  const to = String(request.body.to || '').trim();
+  if (!to || !/^\S+@\S+\.\S+$/.test(to)) return response.status(400).json({ error: 'Bitte eine gültige Test-E-Mail-Adresse eingeben.' });
+  if (!mailer.isConfigured()) return response.status(503).json({ error: 'E-Mail ist noch nicht eingerichtet. Bitte zuerst die AZURE_* Werte in .env ergänzen.' });
+
+  const status = request.body.status === 'Bezahlt' ? 'Bezahlt' : 'Kontaktiert';
+  const payload = templates.statusUpdate(exampleRegistration, status);
+  const result = await sendSafely('Testmail', payload, to, { replyTo: process.env.MAIL_REPLY_TO || CONTACT.email });
+  if (!result) return response.status(502).json({ error: 'Testmail konnte nicht gesendet werden.' });
+  return response.json({ success: true });
 });
 
 app.get('/admin', (request, response) => response.sendFile(path.join(__dirname, 'admin.html')));
