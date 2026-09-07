@@ -1,0 +1,29 @@
+services:
+  fulya-web:
+    build:
+      context: .
+    container_name: fulya-web
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SESSION_SECRET=${SESSION_SECRET}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_SENDER_EMAIL=${AZURE_SENDER_EMAIL}
+      - MAIL_NOTIFY_TO=${MAIL_NOTIFY_TO}
+      - MAIL_REPLY_TO=${MAIL_REPLY_TO}
+    volumes:
+      # Anmeldungen liegen in einer Datei-DB und müssen den Container überleben.
+      - fulya-data:/app/data
+    networks:
+      - web
+    restart: unless-stopped
+
+volumes:
+  fulya-data:
+
+networks:
+  web:
+    external: true

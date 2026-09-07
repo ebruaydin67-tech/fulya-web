@@ -7,25 +7,25 @@ const session = require('express-session');
 const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
 const Datastore = require('nedb-promises');
-const nodemailer = require('nodemailer');
+const mailer = require('./mailer');
+const templates = require('./mail-templates');
 const QRCode = require('qrcode');
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 const GROUP_CAPACITY = 20;
+
+// Bankdaten und Kontakt kommen aus mail-templates.js (eine Quelle).
+const { BANK, CONTACT } = templates;
+
 const dataDirectory = path.join(__dirname, 'data');
 fs.mkdirSync(dataDirectory, { recursive: true });
 
 const database = Datastore.create({ filename: path.join(dataDirectory, 'registrations.db'), autoload: true });
 
-const mailTransport = process.env.MAIL_HOST && process.env.MAIL_USER && process.env.MAIL_PASSWORD
-  ? nodemailer.createTransport({
-      host: process.env.MAIL_HOST,
-      port: Number(process.env.MAIL_PORT) || 587,
-      secure: String(process.env.MAIL_PORT) === '465',
-      auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASSWORD }
-    })
-  : null;
+// Hinter dem Reverse Proxy: X-Forwarded-Proto auswerten, sonst hält Express
+// die Verbindung für HTTP und sendet das secure-Cookie nicht -> Login scheitert.
+app.set('trust proxy', 1);
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json());
@@ -75,23 +75,39 @@ const getAgeFromBirthDate = (value) => {
   return age;
 };
 
-const sendStatusNotification = async (registration, status) => {
-  if (!mailTransport || !registration.email) return false;
+/* ---------- Mailversand ---------- */
 
-  const isPaid = status === 'Bezahlt';
-  const subject = isPaid ? 'Ihre Zahlung wurde bestätigt' : 'Rückmeldung zu Ihrer Anmeldung';
-  const message = isPaid
-    ? `Guten Tag,\n\nwir bestätigen den Zahlungseingang für die Anmeldung von ${registration.first_name} ${registration.last_name}. Ihre Registrierung ist damit abgeschlossen.\n\nViele Grüße\nFulya Academy`
-    : `Guten Tag,\n\nwir haben Ihre Anmeldung für ${registration.first_name} ${registration.last_name} erhalten und werden uns bezüglich der weiteren Schritte bei Ihnen melden.\n\nViele Grüße\nFulya Academy`;
-
-  await mailTransport.sendMail({
-    from: process.env.MAIL_FROM || process.env.MAIL_USER,
-    to: registration.email,
-    subject,
-    text: message
-  });
-  return true;
+// Ein Fehlschlag beim Mailversand darf die Anmeldung nie scheitern lassen.
+const sendSafely = async (label, payload, to, extra = {}) => {
+  try {
+    const result = await mailer.sendMail({ to, ...payload, ...extra });
+    if (!result.sent && result.reason === 'not-configured') {
+      console.warn(`[mail] ${label} nicht gesendet: Azure-Zugangsdaten fehlen.`);
+    }
+    return result.sent;
+  } catch (error) {
+    console.error(`[mail] ${label} fehlgeschlagen:`, error.message);
+    return false;
+  }
 };
+
+const sendConfirmation = (registration) =>
+  sendSafely('Bestätigung', templates.confirmation(registration), registration.email, {
+    replyTo: process.env.MAIL_REPLY_TO || CONTACT.email
+  });
+
+const sendInternalNotice = (registration) => {
+  const to = process.env.MAIL_NOTIFY_TO;
+  if (!to) return Promise.resolve(false);
+  return sendSafely('Interne Meldung', templates.internalNotice(registration), to, {
+    replyTo: registration.email
+  });
+};
+
+const sendStatusNotification = (registration, status) =>
+  sendSafely('Statusmeldung', templates.statusUpdate(registration, status), registration.email, {
+    replyTo: process.env.MAIL_REPLY_TO || CONTACT.email
+  });
 
 app.post('/api/registrations', async (request, response) => {
   const body = request.body;
@@ -131,7 +147,21 @@ app.post('/api/registrations', async (request, response) => {
       privacy_consent: Boolean(body.datenschutz),
       status: 'Neu'
     });
-    return response.status(201).json({ success: true, id: registration._id, group });
+    // Antwort nicht auf den Mailversand warten lassen: Graph kann Sekunden brauchen.
+    const mailPromise = Promise.allSettled([
+      sendConfirmation(registration),
+      sendInternalNotice(registration)
+    ]);
+
+    const [confirmationResult] = await mailPromise;
+    const confirmationSent = confirmationResult.status === 'fulfilled' && confirmationResult.value;
+
+    return response.status(201).json({
+      success: true,
+      id: registration._id,
+      group,
+      confirmationSent
+    });
   } catch (error) {
     return response.status(500).json({ error: 'Başvuru kaydedilemedi.' });
   }
@@ -173,11 +203,20 @@ app.patch('/api/admin/registrations/:id/status', requireAdmin, async (request, r
     }
   }
 
-  return response.json({ success: true, emailSent, emailConfigured: Boolean(mailTransport) });
+  return response.json({ success: true, emailSent, emailConfigured: mailer.isConfigured() });
 });
 
 app.get('/admin', (request, response) => response.sendFile(path.join(__dirname, 'admin.html')));
 
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Fulya server running at http://localhost:${port}`);
+
+  const mail = await mailer.verify();
+  if (mail.ok) {
+    console.log(`[mail] Microsoft Graph bereit — Absender: ${mail.sender}`);
+  } else if (mail.reason === 'not-configured') {
+    console.warn('[mail] Deaktiviert: AZURE_* Variablen fehlen in der .env.');
+  } else {
+    console.error(`[mail] Nicht verfügbar: ${mail.reason}`);
+  }
 });

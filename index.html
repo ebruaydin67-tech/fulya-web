@@ -16,11 +16,13 @@
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body id="top">
+    <a class="skip-link" href="#basvuru">Başvuru formuna geç</a>
+
     <header class="site-header">
       <div class="container nav-wrap">
         <div class="brand" aria-label="Fulya Akademi logo">
-          <img class="brand-logo" src="fulya-logo-transparent.png" alt="Fulya Academy" />
+          <img class="brand-logo" src="fulya-logo-transparent.png" alt="Fulya Akademi" width="92" height="131" />
         </div>
 
         <nav class="main-nav" aria-label="Ana menü">
@@ -246,159 +248,311 @@
             <p class="eyebrow">Kayıt</p>
             <h2>Çocuk Kulübü için başvurun</h2>
             <p>
-              Aşağıdaki formu doldurarak çocuğunuz için başvuruyu yapabilirsiniz. Kayıt için kısa
-              bir iletişim sonrası uygun program ve tarih netleştirilir.
+              Üç adımda tamamlanır: yaş kontrolü, başvuru bilgileri, banka havalesi.
+              Kayıt kesinleşince sizi bilgilendiririz.
             </p>
 
             <div class="contact-box">
               <strong>İletişim</strong>
-              <p>Human - Sufi Culture &amp; Arts e.V.</p>
+              <p>Hûman — Sufi Culture &amp; Arts e.V.</p>
               <p>Ehringhausen 25</p>
               <p>42859 Remscheid</p>
-              <p>Telefon: +49 17623716945</p>
+              <p><a href="tel:+4917623716945">+49 176 23716945</a></p>
             </div>
           </div>
 
-          <form class="register-form" action="" method="POST">
+          <form class="register-form" novalidate>
             <input type="hidden" name="program" value="Çocuk Kulübü" />
-            <div class="birth-date-step">
-              <div class="step-label">1. Adım</div>
+
+            <!-- Fortschritt -->
+            <ol class="step-track" aria-label="Başvuru adımları">
+              <li class="step-dot is-active" data-step="1">
+                <span class="n">1</span><span class="t">Yaş</span>
+              </li>
+              <li class="step-line" aria-hidden="true"></li>
+              <li class="step-dot" data-step="2">
+                <span class="n">2</span><span class="t">Çocuk</span>
+              </li>
+              <li class="step-line" aria-hidden="true"></li>
+              <li class="step-dot" data-step="3">
+                <span class="n">3</span><span class="t">İletişim</span>
+              </li>
+              <li class="step-line" aria-hidden="true"></li>
+              <li class="step-dot" data-step="4">
+                <span class="n">4</span><span class="t">Havale</span>
+              </li>
+            </ol>
+
+            <p class="step-counter" aria-live="polite">
+              <span class="step-counter-now">1</span>. adım / 4
+            </p>
+
+            <!-- ---------- Schritt 1 ---------- -->
+            <fieldset class="form-panel is-current birth-date-step" data-panel="1">
               <div class="form-heading">
-                <div>
-                  <h3>Önce yaş uygunluğunu kontrol edin</h3>
-                  <p>Takvimden çocuğunuzun doğum tarihini seçin. Uygunluk kontrolü hemen yapılır.</p>
-                </div>
+                <h3>Önce yaş uygunluğunu kontrol edin</h3>
+                <p>Çocuğunuzun doğum tarihini seçin. Uygunluk hemen kontrol edilir.</p>
               </div>
-              <p class="date-info">
+
+              <div class="date-info">
                 <strong class="date-info-title">Kimler başvurabilir?</strong>
                 <span class="date-info-subtitle">Çocuğunuzun okula başlamış olması gerekir.</span>
-                <span class="date-info-groups-title">Uygun sınıf grupları</span>
-                <span class="date-info-rules">
-                  <span class="date-info-rule"><span class="date-info-group-label">Grup 1</span><strong class="date-info-class">1. Sınıf</strong><span class="date-info-age">6 yaş</span></span>
-                  <span class="date-info-rule"><span class="date-info-group-label">Grup 2</span><strong class="date-info-class">2. ve 3. Sınıf</strong><span class="date-info-age">7–8 yaş</span></span>
-                </span>
-              </p>
-              <label>
-                Doğum tarihi
-                <input type="date" name="dogum_tarihi" required />
-              </label>
+                <div class="date-info-groups">
+                  <div class="date-info-rule">
+                    <span class="date-info-group-label">Grup 1</span>
+                    <strong class="date-info-class">1. sınıf</strong>
+                    <span class="date-info-age">6 yaş</span>
+                  </div>
+                  <div class="date-info-rule">
+                    <span class="date-info-group-label">Grup 2</span>
+                    <strong class="date-info-class">2. ve 3. sınıf</strong>
+                    <span class="date-info-age">7–8 yaş</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="dogum_tarihi">
+                  Doğum tarihi
+                  <input type="date" id="dogum_tarihi" name="dogum_tarihi" required />
+                </label>
+              </div>
+
               <p class="form-status" role="status" aria-live="polite"></p>
-            </div>
 
-            <div class="registration-extra-fields is-locked" aria-disabled="true">
-              <div class="step-label">2. Adım</div>
+              <div class="panel-nav">
+                <button class="button button-primary" type="button" data-next disabled>
+                  Devam et
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            </fieldset>
+
+            <!-- ---------- Schritt 2 ---------- -->
+            <fieldset class="form-panel registration-extra-fields" data-panel="2" hidden>
               <div class="form-heading">
-                <div>
-                  <h3>Başvuru bilgileri</h3>
-                  <p>Yaş uygunsa aşağıdaki alanlar açılır. Lütfen bilgileri eksiksiz doldurun.</p>
+                <h3>Çocuğun bilgileri</h3>
+                <p>Bu bilgiler kayıt ve gruplama için gerekli.</p>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="ad">
+                    Çocuğun adı
+                    <input type="text" id="ad" name="ad" placeholder="Örnek: Ayşe" autocomplete="given-name" required />
+                  </label>
+                  <p class="field-error" role="alert"></p>
+                </div>
+                <div class="field">
+                  <label for="soyad">
+                    Çocuğun soyadı
+                    <input type="text" id="soyad" name="soyad" placeholder="Örnek: Yılmaz" autocomplete="family-name" required />
+                  </label>
+                  <p class="field-error" role="alert"></p>
                 </div>
               </div>
-              <div class="details-panel">
-              <div class="field-row">
-                <label>
-                  Ad
-                  <input type="text" name="ad" placeholder="Örnek: Ayşe" required />
-                </label>
-                <label>
-                  Soyad
-                  <input type="text" name="soyad" placeholder="Örnek: Yılmaz" required />
-                </label>
-              </div>
 
               <div class="field-row">
-                <label>
-                  Anne adı
-                  <input type="text" name="anne_adi" placeholder="Örnek: Ayşe Yılmaz" required />
-                </label>
-                <label>
-                  Baba adı
-                  <input type="text" name="baba_adi" placeholder="Örnek: Mehmet Yılmaz" />
-                </label>
+                <div class="field">
+                  <label for="anne_adi">
+                    Anne adı
+                    <input type="text" id="anne_adi" name="anne_adi" placeholder="Örnek: Ayşe Yılmaz" required />
+                  </label>
+                  <p class="field-error" role="alert"></p>
+                </div>
+                <div class="field">
+                  <label for="baba_adi">
+                    Baba adı
+                    <input type="text" id="baba_adi" name="baba_adi" placeholder="Örnek: Mehmet Yılmaz" />
+                    <span class="hint">Zorunlu değil</span>
+                  </label>
+                </div>
               </div>
 
-              <div class="field-row">
-                <label>
+              <div class="field">
+                <label for="sinif">
                   Okulda kaçıncı sınıfta?
-                  <input type="text" name="sinif" placeholder="Örnek: 2. sınıf" required />
+                  <input type="text" id="sinif" name="sinif" placeholder="Örnek: 2. sınıf" required />
                 </label>
+                <p class="field-error" role="alert"></p>
               </div>
 
-              <div class="address-fields">
-                <p class="field-group-title">Adres bilgileri</p>
-                <div class="field-row address-row">
-                  <label class="street-field">
-                    Straße / Sokak ve ev numarası
-                    <input type="text" name="adres_strasse" placeholder="Örnek: Ehringhausen 25" required />
+              <p class="field-group-title">Adres bilgileri</p>
+              <div class="field-row address-row">
+                <div class="field">
+                  <label for="adres_strasse">
+                    Sokak ve ev numarası
+                    <input type="text" id="adres_strasse" name="adres_strasse" placeholder="Ehringhausen 25" autocomplete="street-address" required />
                   </label>
-                  <label>
-                    PLZ / Posta kodu
-                    <input type="text" name="adres_plz" inputmode="numeric" placeholder="Örnek: 42859" required />
+                  <p class="field-error" role="alert"></p>
+                </div>
+                <div class="field">
+                  <label for="adres_plz">
+                    Posta kodu
+                    <input type="text" id="adres_plz" name="adres_plz" inputmode="numeric" placeholder="42859" autocomplete="postal-code" required />
                   </label>
-                  <label>
-                    Stadt / Şehir
-                    <input type="text" name="adres_stadt" placeholder="Örnek: Remscheid" required />
+                  <p class="field-error" role="alert"></p>
+                </div>
+                <div class="field">
+                  <label for="adres_stadt">
+                    Şehir
+                    <input type="text" id="adres_stadt" name="adres_stadt" placeholder="Remscheid" autocomplete="address-level2" required />
                   </label>
+                  <p class="field-error" role="alert"></p>
                 </div>
               </div>
+
+              <div class="panel-nav">
+                <button class="button button-ghost" type="button" data-prev>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  Geri
+                </button>
+                <button class="button button-primary" type="button" data-next>
+                  Devam et
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
               </div>
+            </fieldset>
 
-              <div class="contact-fields">
-                <div class="field-row">
-                  <label>
-                    E-posta adresi
-                    <input type="email" name="email" placeholder="isim@email.com" required />
-                  </label>
-                  <label>
-                    Telefon numarası
-                    <input type="tel" name="telefon" inputmode="tel" placeholder="Örnek: 0176 23716945" pattern="0[0-9 ()/-]{6,}" required />
-                  </label>
-                </div>
-
-                <label>
-                  Alerji var mı?
-                  <textarea name="alerji" rows="3" placeholder="Varsa lütfen açıklayın; yoksa 'Yok' yazabilirsiniz." required></textarea>
-                </label>
-              </div>
-
-              <label class="checkbox-wrap">
-                <input type="checkbox" name="datenschutz" required />
-                <span>Bilgilerimin başvuru amacıyla işlenmesine izin veriyorum.</span>
-              </label>
-
-              <label class="checkbox-wrap">
-                <input type="checkbox" name="whatsapp_izni" required />
-                <span>Çocuk Kulübü WhatsApp grubuna katılmama izin veriyorum.</span>
-              </label>
-            </div>
-
-            <button class="button button-primary" type="submit" disabled>Başvuruyu gönder</button>
-
-            <div class="transfer-step is-locked" aria-disabled="true">
-              <div class="step-label">3. Adım</div>
-              <div class="submission-success" role="status">
-                <strong>Başvurunuz yapıldı.</strong>
-                <span>Şimdi aşağıdaki IBAN bilgileriyle 3. adıma, banka havalesine devam edebilirsiniz.</span>
-              </div>
+            <!-- ---------- Schritt 3: Kontakt ---------- -->
+            <fieldset class="form-panel" data-panel="3" hidden>
               <div class="form-heading">
-                <div>
-                  <h3>Başvurudan sonra banka havalesi</h3>
-                  <p>Başvuruyu gönderdikten sonra aşağıdaki banka bilgileriyle ödeme yapabilirsiniz.</p>
+                <h3>İletişim ve izinler</h3>
+                <p>Kayıt sonrası size buradan ulaşacağız.</p>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="email">
+                    E-posta adresi
+                    <input type="email" id="email" name="email" placeholder="isim@email.com" autocomplete="email" required />
+                  </label>
+                  <p class="field-error" role="alert"></p>
                 </div>
+                <div class="field">
+                  <label for="telefon">
+                    Telefon numarası
+                    <input type="tel" id="telefon" name="telefon" inputmode="tel" placeholder="0176 23716945" autocomplete="tel" required />
+                  </label>
+                  <p class="field-error" role="alert"></p>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="alerji">
+                  Alerji var mı?
+                  <textarea id="alerji" name="alerji" rows="3" placeholder="Varsa lütfen açıklayın. Yoksa “Yok” yazabilirsiniz." required></textarea>
+                </label>
+                <p class="field-error" role="alert"></p>
+              </div>
+
+              <div class="field">
+                <label class="checkbox-wrap" for="datenschutz">
+                  <input type="checkbox" id="datenschutz" name="datenschutz" required />
+                  <span>Bilgilerimin başvuru amacıyla işlenmesine izin veriyorum.</span>
+                </label>
+                <label class="checkbox-wrap" for="whatsapp_izni">
+                  <input type="checkbox" id="whatsapp_izni" name="whatsapp_izni" required />
+                  <span>Çocuk Kulübü WhatsApp grubuna katılmama izin veriyorum.</span>
+                </label>
+                <p class="field-error" role="alert"></p>
+              </div>
+
+              <div class="summary-box">
+                <p class="summary-title">Gönderilecek bilgiler</p>
+                <dl class="summary-list"></dl>
+              </div>
+
+              <p class="form-status form-status-submit" role="status" aria-live="polite"></p>
+
+              <div class="panel-nav">
+                <button class="button button-ghost" type="button" data-prev>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  Geri
+                </button>
+                <button class="button button-leaf" type="submit">Başvuruyu gönder</button>
+              </div>
+            </fieldset>
+
+            <!-- ---------- Schritt 3 ---------- -->
+            <div class="form-panel transfer-step" data-panel="4" hidden>
+
+              <div class="submission-success">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" />
+                  <path d="m8 12.4 2.8 2.8L16.5 9.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div>
+                  <strong>Teşekkür ederiz, başvurunuz bize ulaştı.</strong>
+                  <span>Çocuğunuz için gösterdiğiniz ilgiye çok sevindik.</span>
+                </div>
+              </div>
+
+              <div class="mail-notice">
+                <div class="mail-notice-icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" stroke-width="2" />
+                    <path d="m3.5 6.5 8.5 6 8.5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
+                <div>
+                  <strong>E-posta kutunuzu kontrol edin</strong>
+                  <p>
+                    Başvuru bilgilerinizi ve havale detaylarını içeren bir onay e-postası
+                    gönderdik. Birkaç dakika içinde ulaşmazsa lütfen
+                    <strong>spam / junk (gereksiz) klasörünüze</strong> de bakın.
+                  </p>
+                  <p class="mail-notice-hint">
+                    E-postayı bulamazsanız bize <a href="tel:+4917623716945">+49 176 23716945</a>
+                    numarasından ulaşabilirsiniz.
+                  </p>
+                </div>
+              </div>
+
+              <div class="form-heading">
+                <h3>Banka havalesi</h3>
+                <p>Ödeme hesabımıza ulaştıktan sonra kaydınızı kesinleştirir ve size bilgi veririz.</p>
               </div>
 
               <div class="transfer-details">
                 <div class="transfer-qr-wrap">
-                  <img id="transfer-qr" class="transfer-qr" src="/api/transfer-qr" alt="IBAN ve havale bilgileri QR kodu" />
-                  <span>IBAN bilgilerini telefonunuzla okutabilirsiniz.</span>
+                  <img
+                    id="transfer-qr"
+                    class="transfer-qr"
+                    src="/api/transfer-qr"
+                    alt="IBAN ve havale bilgilerini içeren QR kodu"
+                    width="156"
+                    height="156"
+                    loading="lazy"
+                  />
+                  <span>Bankacılık uygulamanızla okutabilirsiniz.</span>
                 </div>
+
                 <div class="transfer-detail">
                   <span>IBAN</span>
                   <strong class="iban-value">DE14 3405 0000 0012 1054 66</strong>
+                  <button type="button" class="copy-iban" data-iban="DE14340500000012105466">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <rect x="9" y="9" width="11" height="11" rx="2.5" stroke="currentColor" stroke-width="2" />
+                      <path d="M5 15V6a2 2 0 0 1 2-2h9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    Kopyala
+                  </button>
                 </div>
+
                 <div class="transfer-detail">
                   <span>Alıcı</span>
                   <strong>HumanSufi Culture &amp; Arts e.V.</strong>
                 </div>
+
                 <div class="transfer-detail">
                   <span>Açıklama</span>
                   <strong>Çocuğun adı ve soyadı</strong>
@@ -407,8 +561,10 @@
 
               <div class="transfer-note">
                 <strong>Havale açıklaması nasıl yazılmalı?</strong>
-                <p>Havale yaparken açıklama bölümüne mutlaka çocuğun <strong>adı ve soyadını</strong> yazın. Böylece ödemenizi doğru başvuruyla eşleştirebiliriz.</p>
-                <p>Ödeme hesabımıza ulaştıktan sonra kayıt işleminizi kesinleştirir ve size bilgi veririz.</p>
+                <p>
+                  Açıklama bölümüne mutlaka çocuğun <strong>adını ve soyadını</strong> yazın.
+                  Böylece ödemenizi doğru başvuruyla eşleştirebiliriz.
+                </p>
               </div>
             </div>
           </form>
