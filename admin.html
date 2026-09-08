@@ -47,6 +47,7 @@
       th button { min-height: auto; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; font: inherit; font-weight: 800; cursor: pointer; text-align: left; }
       th button:hover, th button:focus-visible { color: #df5550; }
       .sort-indicator { color: #278b9b; }
+      .delete-registration { min-height: 36px; padding: .45rem .7rem; background: rgba(223,85,80,.1); color: #a83b37; font-size: .8rem; }
       @media (max-width: 650px) { .top { flex-direction: column; } .top > button { align-self: stretch; } form { flex-direction: column; } .capacity-grid { grid-template-columns: 1fr; } body { padding: 1rem; } .mail-tools, .table-tools { align-items: stretch; } .mail-tools > *, .table-tools > * { width: 100%; min-width: 0; } }
     </style>
   </head>
@@ -101,7 +102,7 @@
                 <tr>
                   <th><button type="button" data-sort-group="Grup 1" data-sort-key="created_at">Tarih <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="name">Çocuk <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="gender">Cinsiyet <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="birth_date">Doğum tarihi <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="class_level">Sınıf <span class="sort-indicator"></span></button></th>
                   <th>Anne</th><th>Baba</th><th>Straße</th><th>PLZ</th><th>Stadt</th>
-                  <th>E-posta</th><th>Telefon</th><th>Alerji</th><th><button type="button" data-sort-group="Grup 1" data-sort-key="status">Durum <span class="sort-indicator"></span></button></th>
+                  <th>E-posta</th><th>Telefon</th><th>Alerji</th><th>Fotoğraf</th><th><button type="button" data-sort-group="Grup 1" data-sort-key="status">Durum <span class="sort-indicator"></span></button></th><th>İşlem</th>
                 </tr>
               </thead>
               <tbody id="group-1-registrations"></tbody>
@@ -126,7 +127,7 @@
                 <tr>
                   <th><button type="button" data-sort-group="Grup 2" data-sort-key="created_at">Tarih <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="name">Çocuk <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="gender">Cinsiyet <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="birth_date">Doğum tarihi <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="class_level">Sınıf <span class="sort-indicator"></span></button></th>
                   <th>Anne</th><th>Baba</th><th>Straße</th><th>PLZ</th><th>Stadt</th>
-                  <th>E-posta</th><th>Telefon</th><th>Alerji</th><th><button type="button" data-sort-group="Grup 2" data-sort-key="status">Durum <span class="sort-indicator"></span></button></th>
+                  <th>E-posta</th><th>Telefon</th><th>Alerji</th><th>Fotoğraf</th><th><button type="button" data-sort-group="Grup 2" data-sort-key="status">Durum <span class="sort-indicator"></span></button></th><th>İşlem</th>
                 </tr>
               </thead>
               <tbody id="group-2-registrations"></tbody>

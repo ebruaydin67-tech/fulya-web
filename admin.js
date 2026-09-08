@@ -32,7 +32,7 @@
     'Grup 2': document.querySelector('#group-2-capacity')
   };
   const tableState = Object.fromEntries(GROUPS.map((group) => [group, { rows: [], search: '', status: '', sortKey: 'created_at', sortDirection: 'desc' }]));
-  const tableLabels = ['Tarih', 'Çocuk', 'Cinsiyet', 'Doğum tarihi', 'Sınıf', 'Anne', 'Baba', 'Straße', 'PLZ', 'Stadt', 'E-posta', 'Telefon', 'Alerji', 'Durum'];
+  const tableLabels = ['Tarih', 'Çocuk', 'Cinsiyet', 'Doğum tarihi', 'Sınıf', 'Anne', 'Baba', 'Straße', 'PLZ', 'Stadt', 'E-posta', 'Telefon', 'Alerji', 'Fotoğraf', 'Durum'];
 
   /* ---------- Meldungen ---------- */
   let noticeTimer;
@@ -117,6 +117,39 @@
     return td;
   };
 
+  const deleteRegistration = async (item) => {
+    const name = rowName(item) || 'diese Anmeldung';
+    if (!window.confirm(`${name} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) return;
+    try {
+      const response = await fetch(`/api/admin/registrations/${item._id}`, { method: 'DELETE' });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        flash(result.error || `Anmeldung konnte nicht gelöscht werden (${response.status}).`, false);
+        return;
+      }
+      const group = item.group;
+      tableState[group].rows = tableState[group].rows.filter((row) => row._id !== item._id);
+      const card = capacityCards[group];
+      card.querySelector('strong').textContent = `${tableState[group].rows.length} / ${CAPACITY} çocuk`;
+      card.classList.toggle('full', tableState[group].rows.length >= CAPACITY);
+      renderGroup(group);
+      flash('Anmeldung wurde gelöscht.');
+    } catch (error) {
+      flash('Anmeldung konnte nicht gelöscht werden. Bitte Seite neu laden und erneut versuchen.', false);
+    }
+  };
+
+  const deleteCell = (item) => {
+    const td = document.createElement('td');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'delete-registration';
+    button.textContent = 'Sil';
+    button.addEventListener('click', () => deleteRegistration(item));
+    td.append(button);
+    return td;
+  };
+
   const buildRow = (item) => {
     const address = splitAddress(item.address);
     const row = document.createElement('tr');
@@ -134,7 +167,9 @@
       linkCell(item.email, `mailto:${item.email}`),
       linkCell(item.phone, `tel:${String(item.phone || '').replace(/\s/g, '')}`),
       cell(item.allergies),
-      statusCell(item)
+      cell(item.photo_consent ? 'Evet' : 'Hayır'),
+      statusCell(item),
+      deleteCell(item)
     );
     return row;
   };
@@ -146,7 +181,7 @@
     return [
       formatDateTime(item.created_at), rowName(item), item.gender, formatDate(item.birth_date), item.class_level,
       item.mother_name, item.father_name, address.street, address.postalCode, address.city,
-      item.email, item.phone, item.allergies, item.status
+      item.email, item.phone, item.allergies, item.photo_consent ? 'Evet' : 'Hayır', item.status
     ].map((value) => String(value || ''));
   };
 

@@ -48,7 +48,7 @@ app.get('/api/transfer-qr', async (request, response) => {
       'Überweisung',
       'Empfänger: HumanSufi Culture & Arts e.V.',
       'IBAN: DE14340500000012105466',
-      'Verwendungszweck: Name und Nachname des Kindes'
+      'Verwendungszweck: Fulya Academy - Name und Nachname des Kindes'
     ].join('\n');
     const qrDataUrl = await QRCode.toDataURL(qrData, { width: 220, margin: 2, color: { dark: '#1e3a4d', light: '#ffffff' } });
     response.type('png').send(Buffer.from(qrDataUrl.split(',')[1], 'base64'));
@@ -144,6 +144,7 @@ app.post('/api/registrations', async (request, response) => {
       email: String(body.email).trim(),
       phone: String(body.telefon).trim(),
       allergies: String(body.alerji).trim(),
+      photo_consent: Boolean(body.foto_izni),
       whatsapp_consent: Boolean(body.whatsapp_izni),
       privacy_consent: Boolean(body.datenschutz),
       status: 'Neu'
@@ -205,6 +206,17 @@ app.patch('/api/admin/registrations/:id/status', requireAdmin, async (request, r
   }
 
   return response.json({ success: true, emailSent, emailConfigured: mailer.isConfigured() });
+});
+
+app.delete('/api/admin/registrations/:id', requireAdmin, async (request, response) => {
+  try {
+    const removed = await database.remove({ _id: request.params.id }, { multi: false });
+    if (removed !== 1) return response.status(404).json({ error: 'Anmeldung nicht gefunden.' });
+    return response.json({ success: true });
+  } catch (error) {
+    console.error('[admin] Anmeldung konnte nicht gelöscht werden:', error);
+    return response.status(500).json({ error: 'Anmeldung konnte serverseitig nicht gelöscht werden.' });
+  }
 });
 
 const exampleRegistration = {

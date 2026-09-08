@@ -154,6 +154,7 @@ p { color: var(--muted); font-size: 1rem; }
 .price-card.featured { background: linear-gradient(180deg, rgba(255,241,189,.92), rgba(255,255,255,.8)); }
 .price-line { margin: 1rem 0; }
 .amount { color: var(--navy); font-size: 4rem; font-weight: 900; letter-spacing: -.08em; line-height: 1; }
+.amount small { display: inline-block; margin-left: .2rem; color: var(--muted); font-size: .9rem; font-weight: 800; letter-spacing: 0; }
 .info-card-plain { display: flex; flex-direction: column; justify-content: center; }
 
 .cta-section { padding-top: 35px; }
@@ -322,14 +323,10 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--t
 
 .site-footer { margin-top: 3rem; padding: 2.5rem 0; background: var(--cream); border-top: 1px solid var(--line); }
 .footer-wrap { display: flex; flex-direction: column; align-items: center; gap: 1.4rem; text-align: center; }
-.footer-brand { display: flex; flex-direction: column; align-items: center; gap: .7rem; }
-.footer-brand img { width: 74px; height: 76px; object-fit: contain; }
-.footer-brand strong, .footer-brand span { display: block; }
-.footer-brand span:last-child { color: var(--muted); font-size: .75rem; }
-.footer-info { display: flex; flex-direction: column; align-items: center; gap: .15rem; font-size: .78rem; }
-.footer-info img { width: 56px; height: 56px; object-fit: contain; margin-bottom: .35rem; }
-.footer-info span { color: var(--turquoise); text-transform: uppercase; letter-spacing: .12em; font-size: .65rem; }
-.footer-info a { color: var(--turquoise); }
+.footer-logos { display: flex; align-items: center; justify-content: center; gap: 1.25rem; }
+.footer-logos img { width: 74px; height: 76px; object-fit: contain; }
+.footer-logos img + img { width: 64px; height: 64px; }
+.footer-link { color: var(--turquoise) !important; font-size: .78rem; font-weight: 800; }
 .site-footer p, .site-footer a { margin: 0; color: var(--navy); }
 .back-to-top { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: rgba(255,255,255,.65); font-size: 1.5rem; font-weight: 900; line-height: 1; }
 

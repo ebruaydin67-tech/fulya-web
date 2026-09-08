@@ -8,7 +8,7 @@ const BANK = {
   recipient: 'HumanSufi Culture & Arts e.V.',
   iban: 'DE14 3405 0000 0012 1054 66',
   ibanPlain: 'DE14340500000012105466',
-  amount: '20 €'
+  amount: '60 € (3 Monate im Voraus)'
 };
 
 const CONTACT = {
@@ -112,10 +112,10 @@ const confirmation = (r) => {
     '— SON ADIM: BANKA HAVALESİ —',
     `Alıcı: ${BANK.recipient}`,
     `IBAN: ${BANK.iban}`,
-    `Tutar: ${BANK.amount} (ders başına)`,
-    `Açıklama: ${child}`,
+    `Tutar: ${BANK.amount}`,
+    `Açıklama: Fulya Academy - ${child}`,
     '',
-    'ÖNEMLİ: Havale açıklamasına mutlaka çocuğunuzun adını ve soyadını yazın.',
+    'ÖNEMLİ: Havale açıklamasına mutlaka Fulya Academy - çocuğunuzun adını ve soyadını yazın.',
     'Böylece ödemenizi doğru başvuruyla eşleştirebiliriz.',
     '',
     'Ödeme hesabımıza ulaştıktan sonra kaydınızı kesinleştirir ve size bilgi veririz.',
@@ -159,8 +159,8 @@ const confirmation = (r) => {
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
               ${row('Alıcı', BANK.recipient)}
               ${row('IBAN', BANK.iban)}
-              ${row('Tutar', `${BANK.amount} (ders başına)`)}
-              ${row('Açıklama', child)}
+              ${row('Tutar', BANK.amount)}
+              ${row('Açıklama', `Fulya Academy - ${child}`)}
             </table>
           </td></tr>
         </table>
@@ -169,7 +169,7 @@ const confirmation = (r) => {
           <tr><td style="padding:16px 18px;">
             <p style="margin:0 0 6px;font-size:15px;font-weight:800;color:#1e3a4d;">Havale açıklaması nasıl yazılmalı?</p>
             <p style="margin:0;font-size:14px;color:#4a423a;line-height:1.65;">
-              Açıklama bölümüne mutlaka çocuğunuzun <strong>adını ve soyadını</strong> yazın.
+              Açıklama bölümüne mutlaka <strong>Fulya Academy - çocuğunuzun adını ve soyadını</strong> yazın.
               Böylece ödemenizi doğru başvuruyla eşleştirebiliriz.
             </p>
           </td></tr>
@@ -200,9 +200,9 @@ const statusUpdate = (r, status) => {
     'Merhaba,',
     '',
     message,
-    `Cinsiyet: ${r.gender || '—'}`,
+    ...(!isPaid ? [`Cinsiyet: ${r.gender || '—'}`] : []),
     '',
-    !isPaid ? `Havale bilgileri:\nAlıcı: ${BANK.recipient}\nIBAN: ${BANK.iban}\nAçıklama: ${child}\n` : null,
+    !isPaid ? `Havale bilgileri:\nAlıcı: ${BANK.recipient}\nIBAN: ${BANK.iban}\nAçıklama: Fulya Academy - ${child}\n` : null,
     `${CONTACT.name}`,
     `${CONTACT.street}, ${CONTACT.city}`,
     `Telefon: ${CONTACT.phone}`,
@@ -216,13 +216,13 @@ const statusUpdate = (r, status) => {
     header(
       heading,
       'Fulya Akademi · Çocuk Kulübü',
-      isPaid ? '#42b7bd' : '#fff1bd',
+      isPaid ? '#bfe8e4' : '#fff8e9',
       '#1e3a4d'
     ) +
       `<tr><td style="padding:26px 24px;">
         <p style="margin:0 0 14px;font-size:16px;color:#1e3a4d;">Merhaba,</p>
         <p style="margin:0 0 18px;font-size:16px;color:#4a423a;line-height:1.65;">${escapeHtml(message)}</p>
-        <p style="margin:0 0 18px;font-size:14px;color:#52656d;">Cinsiyet: <strong>${escapeHtml(r.gender || '—')}</strong></p>
+        ${!isPaid ? `<p style="margin:0 0 18px;font-size:14px;color:#52656d;">Cinsiyet: <strong>${escapeHtml(r.gender || '—')}</strong></p>` : ''}
         ${
           isPaid
             ? ''
@@ -231,7 +231,7 @@ const statusUpdate = (r, status) => {
                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                      ${row('Alıcı', BANK.recipient)}
                      ${row('IBAN', BANK.iban)}
-                     ${row('Açıklama', child)}
+                     ${row('Açıklama', `Fulya Academy - ${child}`)}
                    </table>
                  </td></tr>
                </table>`
