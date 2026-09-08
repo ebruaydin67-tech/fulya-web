@@ -8,7 +8,9 @@ const BANK = {
   recipient: 'HumanSufi Culture & Arts e.V.',
   iban: 'DE14 3405 0000 0012 1054 66',
   ibanPlain: 'DE14340500000012105466',
-  amount: '60 € (3 Monate im Voraus)'
+  amount: '60 € (3 Monate im Voraus)',
+  // Numerisch fuer den GiroCode (EPC-QR): Format EUR60.00
+  amountEur: '60.00'
 };
 
 const CONTACT = {

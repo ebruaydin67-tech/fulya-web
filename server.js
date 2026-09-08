@@ -42,15 +42,53 @@ app.use(session({
   saveUninitialized: false,
   cookie: { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 8 * 60 * 60 * 1000 }
 }));
+// SEPA erlaubt im Verwendungszweck nur den lateinischen Grundzeichensatz.
+// Tuerkische Sonderzeichen werden von vielen Bank-Apps abgelehnt -> transliterieren.
+const toSepaText = (value) =>
+  String(value || '')
+    .replace(/[şŞ]/g, (c) => (c === 'ş' ? 's' : 'S'))
+    .replace(/[ğĞ]/g, (c) => (c === 'ğ' ? 'g' : 'G'))
+    .replace(/ı/g, 'i').replace(/İ/g, 'I')
+    .replace(/[çÇ]/g, (c) => (c === 'ç' ? 'c' : 'C'))
+    .replace(/[öÖ]/g, (c) => (c === 'ö' ? 'o' : 'O'))
+    .replace(/[üÜ]/g, (c) => (c === 'ü' ? 'u' : 'U'))
+    .replace(/[äÄ]/g, (c) => (c === 'ä' ? 'ae' : 'Ae'))
+    .replace(/ß/g, 'ss')
+    .replace(/&/g, 'and')   // & ist im SEPA-Zeichensatz nicht erlaubt
+    .replace(/[^A-Za-z0-9 /?:().,'+-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+// EPC-QR-Code ("GiroCode"): das einzige Format, das Bank-Apps als
+// Ueberweisung erkennen und die Felder automatisch ausfuellen.
+// Zeilen per LF, Version 002, UTF-8, BIC darf leer bleiben.
+const buildGiroCode = (childName) => {
+  const purpose = toSepaText(`Fulya Academy - ${childName || 'Name des Kindes'}`).slice(0, 140);
+  return [
+    'BCD',
+    '002',
+    '1',
+    'SCT',
+    '',                              // BIC (bei 002 optional)
+    toSepaText(BANK.recipient).slice(0, 70),
+    BANK.ibanPlain,
+    `EUR${BANK.amountEur}`,
+    '',                              // Purpose-Code
+    '',                              // strukturierte Referenz
+    purpose                          // unstrukturierter Verwendungszweck
+  ].join('\n');
+};
+
 app.get('/api/transfer-qr', async (request, response) => {
   try {
-    const qrData = [
-      'Überweisung',
-      'Empfänger: HumanSufi Culture & Arts e.V.',
-      'IBAN: DE14340500000012105466',
-      'Verwendungszweck: Fulya Academy - Name und Nachname des Kindes'
-    ].join('\n');
-    const qrDataUrl = await QRCode.toDataURL(qrData, { width: 220, margin: 2, color: { dark: '#1e3a4d', light: '#ffffff' } });
+    const childName = String(request.query.name || '').slice(0, 100);
+    const qrDataUrl = await QRCode.toDataURL(buildGiroCode(childName), {
+      errorCorrectionLevel: 'M',   // EPC-Vorgabe: mindestens M
+      width: 240,
+      margin: 2,
+      color: { dark: '#1e3a4d', light: '#ffffff' }
+    });
+    response.set('Cache-Control', 'no-store');
     response.type('png').send(Buffer.from(qrDataUrl.split(',')[1], 'base64'));
   } catch (error) {
     response.status(500).send('QR-Code konnte nicht erstellt werden.');

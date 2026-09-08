@@ -168,7 +168,7 @@
   };
 
   /* ---------- Panel-Navigation ---------- */
-  const showStep = (step, { focus = true, push = true } = {}) => {
+  const showStep = (step, { focus = true, push = true, scroll = true } = {}) => {
     currentStep = step;
 
     panels.forEach((panel) => {
@@ -192,8 +192,9 @@
     const panel = panels.find((p) => Number(p.dataset.panel) === step);
     if (!panel) return;
 
-    // Kopf des Formulars zeigen, damit die Schrittanzeige sichtbar ist
-    scrollTo(form);
+    // Kopf des Formulars zeigen, damit die Schrittanzeige sichtbar ist.
+    // Beim Seitenstart nicht: der Besucher soll oben beim Hero landen.
+    if (scroll) scrollTo(form);
 
     if (focus) {
       const firstField = panel.querySelector('input:not([type="hidden"]), textarea, select');
@@ -451,6 +452,15 @@
   };
 
   const showTransferStep = () => {
+    // QR-Code mit dem Namen des Kindes: die Bank-App fuellt dann
+    // Empfaenger, IBAN, Betrag UND Verwendungszweck automatisch aus.
+    if (transferQr) {
+      const first = form.querySelector('input[name="ad"]')?.value.trim() || '';
+      const last = form.querySelector('input[name="soyad"]')?.value.trim() || '';
+      const name = `${first} ${last}`.trim();
+      transferQr.src = `${apiBase}/api/transfer-qr?name=${encodeURIComponent(name)}`;
+    }
+
     // Schritt 4 ist ein Ergebnis, kein Eingabeschritt: Zurück wäre sinnlos.
     panels.forEach((panel) => {
       const isTransfer = Number(panel.dataset.panel) === 4;
@@ -522,7 +532,7 @@
   });
 
   /* ---------- Start ---------- */
-  showStep(1, { focus: false });
+  showStep(1, { focus: false, scroll: false });
 
   /* ---------- IBAN kopieren ---------- */
   const copyButton = form.querySelector('.copy-iban');
