@@ -5,7 +5,7 @@
    ============================================================ */
 
 const BANK = {
-  recipient: 'HumanSufi Culture & Arts e.V.',
+  recipient: 'Human - Sufi Culture & Arts e.V.',
   iban: 'DE14 3405 0000 0012 1054 66',
   ibanPlain: 'DE14340500000012105466',
   amount: '60 € (3 Monate im Voraus)',
