@@ -40,6 +40,105 @@ const formatTrDate = (value) => {
 
 const childName = (r) => `${r.first_name || ''} ${r.last_name || ''}`.trim();
 
+const localizeEmail = (mail, language, registration) => {
+  if (language !== 'de') return mail;
+  const child = childName(registration);
+  const replacements = [
+    [`${child} için Fulya Akademi Çocuk Kulübü başvurunuzu aldık. Teşekkür ederiz.`, `Wir haben Ihre Anmeldung für ${child} zum Fulya-Kinderclub erhalten. Vielen Dank.`],
+    [`${child} için başvurunuzu aldık, teşekkür ederiz.`, `Wir haben die Anmeldung für ${child} erhalten. Vielen Dank.`],
+    [`${child} için ödemenizi aldık. Kaydınız kesinleşmiştir. Ders tarihleri ve buluşma detayları için sizinle iletişimde kalacağız.`, `Wir haben Ihre Zahlung für ${child} erhalten und bestätigen hiermit die Anmeldung. Über Kurstermine und Treffpunkt informieren wir Sie.`],
+    [`${child} için başvurunuzu inceledik ve en kısa sürede sizinle iletişime geçeceğiz.`, `Wir prüfen die Anmeldung für ${child} und melden uns so bald wie möglich bei Ihnen.`],
+    [`${child} için başvurunuzu aldık, teşekkür ederiz. Aşağıda başvuru bilgileriniz ve son adım olan banka havalesi yer alıyor.`, `Wir haben die Anmeldung für ${child} erhalten. Vielen Dank. Unten finden Sie die Angaben und die Überweisungsinformationen.`],
+    [`Cinsiyet: ${registration.gender || '—'}`, `Geschlecht: ${registration.gender === 'Kız' ? 'Mädchen' : registration.gender === 'Erkek' ? 'Junge' : '—'}`],
+    [`Doğum tarihi: ${formatTrDate(registration.birth_date)} (${registration.age} yaş)`, `Geburtsdatum: ${new Date(`${registration.birth_date}T00:00:00`).toLocaleDateString('de-DE')} (${registration.age} Jahre)`],
+    [`Grup: ${registration.group} · ${registration.age} yaş · ${registration.class_level}`, `Gruppe: ${registration.group === 'Grup 1' ? 'Gruppe 1' : 'Gruppe 2'} · ${registration.age} Jahre · ${registration.class_level}`],
+    [`Grup: ${registration.group}`, `Gruppe: ${registration.group === 'Grup 1' ? 'Gruppe 1' : 'Gruppe 2'}`],
+    [`Alerji: ${registration.allergies}`, `Allergien: ${registration.allergies === 'Yok' ? 'Keine' : registration.allergies}`],
+    ['Havale bilgileri:', 'Überweisungsinformationen:'],
+    ['Bu e-posta başvurunuz üzerine otomatik olarak gönderilmiştir.', 'Diese E-Mail wurde automatisch zu Ihrer Anmeldung versendet.'],
+    ['Fulya Akademi · Çocuk Kulübü', 'Fulya Akademie · Kinderclub'],
+    ['Human - Sufi Culture & Arts e.V.', 'Human - Sufi Culture & Arts e.V.'],
+    ['Başvurunuz alındı', 'Anmeldung eingegangen'],
+    ['Başvuru bilgileri', 'Angaben zur Anmeldung'],
+    ['Son adım: banka havalesi', 'Letzter Schritt: Überweisung'],
+    ['Havale açıklaması nasıl yazılmalı?', 'Was gehört in den Verwendungszweck?'],
+    ['Açıklama bölümüne mutlaka Fulya Academy - çocuğunuzun adını ve soyadını yazın.', 'Bitte geben Sie als Verwendungszweck unbedingt Fulya Academy - Vor- und Nachname Ihres Kindes an.'],
+    ['Böylece ödemenizi doğru başvuruyla eşleştirebiliriz.', 'So können wir Ihre Zahlung der richtigen Anmeldung zuordnen.'],
+    ['Ödeme hesabımıza ulaştıktan sonra kaydınızı kesinleştirir ve size bilgi veririz.', 'Sobald Ihre Zahlung eingegangen ist, bestätigen wir die Anmeldung und informieren Sie.'],
+    ['ÖNEMLİ: Havale açıklamasına mutlaka Fulya Academy - çocuğunuzun adını ve soyadını yazın.', 'WICHTIG: Bitte geben Sie als Verwendungszweck Fulya Academy - Vor- und Nachname Ihres Kindes an.'],
+    ['Böylece ödemenizi doğru başvuruyla eşleştirebiliriz.', 'So können wir Ihre Zahlung der richtigen Anmeldung zuordnen.'],
+    ['Merhaba,', 'Guten Tag,'],
+    ['Yeni başvuru alındı.', 'Eine neue Anmeldung ist eingegangen.'],
+    ['Yeni başvuru: ', 'Neue Anmeldung: '],
+    [' başvurunuzu aldık. Teşekkür ederiz.', ' Ihre Anmeldung ist bei uns eingegangen. Vielen Dank.'],
+    ['Başvurunuz alındı', 'Ihre Anmeldung ist eingegangen'],
+    ['Başvurunuz değerlendiriliyor', 'Ihre Anmeldung wird geprüft'],
+    ['Kaydınız kesinleşti', 'Ihre Anmeldung ist bestätigt'],
+    ['Kayıt', 'Anmeldung'],
+    ['— BAŞVURU BİLGİLERİ —', '— ANGABEN ZUR ANMELDUNG —'],
+    ['— SON ADIM: BANKA HAVALESİ —', '— LETZTER SCHRITT: ÜBERWEISUNG —'],
+    ['Başvurunuz değerlendiriliyor', 'Ihre Anmeldung wird bearbeitet'],
+    ['Kaydınız kesinleşti', 'Ihre Anmeldung ist bestätigt'],
+    ['Yeni başvuru', 'Neue Anmeldung'],
+    ['Yeni başvuru alındı.', 'Eine neue Anmeldung ist eingegangen.'],
+    ['Başvurunuz değerlendiriliyor', 'Ihre Anmeldung wird bearbeitet'],
+    [`Sınıf: ${registration.class_level}`, `Klasse: ${registration.class_level}`],
+    [`Anne: ${registration.mother_name}`, `Mutter: ${registration.mother_name}`],
+    [`Baba: ${registration.father_name}`, `Vater: ${registration.father_name}`],
+    [`Adres: ${registration.address}`, `Anschrift: ${registration.address}`],
+    [`E-posta: ${registration.email}`, `E-Mail: ${registration.email}`],
+    [`Telefon: ${registration.phone}`, `Telefon: ${registration.phone}`],
+    [`Çocuk: ${child}`, `Kind: ${child}`],
+    [`Grup: ${registration.group} · ${registration.age} yaş · ${registration.class_level}`, `Gruppe: ${registration.group === 'Grup 1' ? 'Gruppe 1' : 'Gruppe 2'} · ${registration.age} Jahre · ${registration.class_level}`],
+    [`Alıcı: ${BANK.recipient}`, `Empfänger: ${BANK.recipient}`],
+    [`IBAN: ${BANK.iban}`, `IBAN: ${BANK.iban}`],
+    [`Tutar: ${BANK.amount}`, `Betrag: ${BANK.amount}`],
+    [`Açıklama: Fulya Academy - ${child}`, `Verwendungszweck: Fulya Academy - ${child}`],
+    [`${CONTACT.street}, ${CONTACT.city}`, `${CONTACT.street}, ${CONTACT.city}`],
+    [`Telefon: ${CONTACT.phone}`, `Telefon: ${CONTACT.phone}`],
+    [`E-posta: ${CONTACT.email}`, `E-Mail: ${CONTACT.email}`]
+  ];
+
+  const replace = (value) => {
+    let result = replacements.reduce((current, [from, to]) => current.split(from).join(to), value);
+    const dateGerman = registration.birth_date
+      ? new Date(`${registration.birth_date}T00:00:00`).toLocaleDateString('de-DE')
+      : '';
+    const genderGerman = registration.gender === 'Kız' ? 'Mädchen' : registration.gender === 'Erkek' ? 'Junge' : '—';
+    const labels = {
+      'Çocuk': 'Kind', 'Cinsiyet': 'Geschlecht', 'Doğum tarihi': 'Geburtsdatum',
+      'Grup': 'Gruppe', 'Sınıf': 'Klasse', 'Anne': 'Mutter', 'Baba': 'Vater',
+      'Adres': 'Anschrift', 'E-posta': 'E-Mail', 'Telefon': 'Telefon',
+      'Alerji': 'Allergien', 'Alıcı': 'Empfänger', 'Tutar': 'Betrag', 'Açıklama': 'Verwendungszweck'
+    };
+    if (value === mail.html) {
+      Object.entries(labels).forEach(([from, to]) => {
+        result = result.replace(new RegExp(`(>\\s*)${from}(\\s*</td>)`, 'g'), `$1${to}$2`);
+      });
+      if (registration.gender) result = result.replace(`>${registration.gender}</td>`, `>${genderGerman}</td>`);
+      if (dateGerman) result = result.replaceAll(formatTrDate(registration.birth_date), dateGerman);
+      result = result.replace(/<html lang="tr">/, '<html lang="de">');
+    } else {
+      result = result.split('\n').map((line) => {
+        const separator = line.indexOf(':');
+        if (separator < 0) return line;
+        const label = line.slice(0, separator);
+        return labels[label] ? `${labels[label]}${line.slice(separator)}` : line;
+      }).join('\n');
+      result = result.replace(/Doğum tarihi: ([^\n]+) \((\d+) yaş\)/g, (_, date, age) => `Geburtsdatum: ${new Date(`${registration.birth_date}T00:00:00`).toLocaleDateString('de-DE')} (${age} Jahre)`);
+      result = result.replace(/Grup: Grup ([12])/g, 'Gruppe: Gruppe $1');
+      result = result.replace(/Geschlecht: (?:Kız|Erkek|—)/g, `Geschlecht: ${genderGerman}`);
+      if (dateGerman) result = result.replaceAll(formatTrDate(registration.birth_date), dateGerman);
+    }
+    return result;
+  };
+  return {
+    subject: replace(mail.subject),
+    text: replace(mail.text),
+    html: replace(mail.html).replace('<html lang="tr">', '<html lang="de">')
+  };
+};
+
 const row = (label, value) =>
   value
     ? `<tr>
@@ -183,7 +282,7 @@ const confirmation = (r) => {
       </td></tr>`
   );
 
-  return { subject: `Başvurunuz alındı — ${child}`, text, html };
+  return localizeEmail({ subject: `Başvurunuz alındı — ${child}`, text, html }, r.language, r);
 };
 
 /* ============================================================
@@ -241,7 +340,7 @@ const statusUpdate = (r, status) => {
       </td></tr>`
   );
 
-  return { subject: `${heading} — ${child}`, text, html };
+  return localizeEmail({ subject: `${heading} — ${child}`, text, html }, r.language, r);
 };
 
 /* ============================================================
@@ -287,7 +386,7 @@ const internalNotice = (r) => {
       </td></tr>`
   );
 
-  return { subject: `Yeni başvuru: ${child} (${r.group})`, text, html };
+  return localizeEmail({ subject: `Yeni başvuru: ${child} (${r.group})`, text, html }, r.language, r);
 };
 
 module.exports = { confirmation, statusUpdate, internalNotice, BANK, CONTACT };

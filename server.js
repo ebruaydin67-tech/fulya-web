@@ -130,45 +130,48 @@ const sendSafely = async (label, payload, to, extra = {}) => {
 };
 
 const sendConfirmation = (registration) =>
-  sendSafely('Bestätigung', templates.confirmation(registration), registration.email, {
+  sendSafely('Bestätigung', templates.confirmation(registration, registration.language), registration.email, {
     replyTo: process.env.MAIL_REPLY_TO || CONTACT.email
   });
 
 const sendInternalNotice = (registration) => {
   const to = process.env.MAIL_NOTIFY_TO;
   if (!to) return Promise.resolve(false);
-  return sendSafely('Interne Meldung', templates.internalNotice(registration), to, {
+  return sendSafely('Interne Meldung', templates.internalNotice(registration, registration.language), to, {
     replyTo: registration.email
   });
 };
 
 const sendStatusNotification = (registration, status) =>
-  sendSafely('Statusmeldung', templates.statusUpdate(registration, status), registration.email, {
+  sendSafely('Statusmeldung', templates.statusUpdate(registration, status, registration.language), registration.email, {
     replyTo: process.env.MAIL_REPLY_TO || CONTACT.email
   });
 
 app.post('/api/registrations', async (request, response) => {
   const body = request.body;
+  const isGerman = body.language === 'de';
   const requiredFields = ['ad', 'soyad', 'cinsiyet', 'dogum_tarihi', 'sinif', 'anne_adi', 'adres_strasse', 'adres_plz', 'adres_stadt', 'email', 'telefon', 'alerji'];
   if (requiredFields.some((field) => !String(body[field] || '').trim()) || !body.datenschutz || !body.whatsapp_izni) {
-    return response.status(400).json({ error: 'Lütfen tüm zorunlu alanları doldurun.' });
+    return response.status(400).json({ error: isGerman ? 'Bitte füllen Sie alle Pflichtfelder aus.' : 'Lütfen tüm zorunlu alanları doldurun.' });
   }
 
   try {
     const age = getAgeFromBirthDate(String(body.dogum_tarihi).trim());
     const group = age === 6 ? 'Grup 1' : age === 7 || age === 8 ? 'Grup 2' : null;
     if (!group) {
-      return response.status(400).json({ error: 'Bu başvuru yalnızca 6–8 yaş aralığındaki çocuklar için uygundur.' });
+      return response.status(400).json({ error: isGerman ? 'Diese Anmeldung ist nur für eingeschulte Kinder im Alter von 6 bis 8 Jahren möglich.' : 'Bu başvuru yalnızca 6–8 yaş aralığındaki çocuklar için uygundur.' });
     }
 
     const groupCount = await database.count({ group });
     if (groupCount >= GROUP_CAPACITY) {
-      return response.status(409).json({ error: `${group} kapasitesi dolu. Bu grup için artık başvuru kabul edilemiyor.` });
+      const localizedGroup = isGerman ? group.replace('Grup', 'Gruppe') : group;
+      return response.status(409).json({ error: isGerman ? `${localizedGroup} ist ausgebucht. Für diese Gruppe sind keine weiteren Anmeldungen möglich.` : `${group} kapasitesi dolu. Bu grup için artık başvuru kabul edilemiyor.` });
     }
 
     const registration = await database.insert({
       created_at: new Date().toISOString(),
       program: String(body.program || 'Çocuk Kulübü').trim(),
+      language: body.language === 'de' ? 'de' : 'tr',
       first_name: String(body.ad).trim(),
       last_name: String(body.soyad).trim(),
       gender: String(body.cinsiyet).trim(),
@@ -203,7 +206,7 @@ app.post('/api/registrations', async (request, response) => {
       confirmationSent
     });
   } catch (error) {
-    return response.status(500).json({ error: 'Başvuru kaydedilemedi.' });
+    return response.status(500).json({ error: isGerman ? 'Die Anmeldung konnte nicht gespeichert werden.' : 'Başvuru kaydedilemedi.' });
   }
 });
 
@@ -249,11 +252,11 @@ app.patch('/api/admin/registrations/:id/status', requireAdmin, async (request, r
 app.delete('/api/admin/registrations/:id', requireAdmin, async (request, response) => {
   try {
     const removed = await database.remove({ _id: request.params.id }, { multi: false });
-    if (removed !== 1) return response.status(404).json({ error: 'Anmeldung nicht gefunden.' });
+    if (removed !== 1) return response.status(404).json({ error: 'Başvuru bulunamadı.' });
     return response.json({ success: true });
   } catch (error) {
     console.error('[admin] Anmeldung konnte nicht gelöscht werden:', error);
-    return response.status(500).json({ error: 'Anmeldung konnte serverseitig nicht gelöscht werden.' });
+    return response.status(500).json({ error: 'Başvuru sunucu tarafından silinemedi.' });
   }
 });
 
@@ -275,7 +278,7 @@ const exampleRegistration = {
 
 app.get('/api/admin/email-preview', requireAdmin, (request, response) => {
   const status = request.query.status === 'Bezahlt' ? 'Bezahlt' : 'Kontaktiert';
-  const preview = templates.statusUpdate(exampleRegistration, status);
+  const preview = templates.statusUpdate({ ...exampleRegistration, language: request.query.language === 'de' ? 'de' : 'tr' }, status);
   response.type('html').send(preview.html);
 });
 
@@ -285,7 +288,7 @@ app.post('/api/admin/email-test', requireAdmin, async (request, response) => {
   if (!mailer.isConfigured()) return response.status(503).json({ error: 'E-Mail ist noch nicht eingerichtet. Bitte zuerst die AZURE_* Werte in .env ergänzen.' });
 
   const status = request.body.status === 'Bezahlt' ? 'Bezahlt' : 'Kontaktiert';
-  const payload = templates.statusUpdate(exampleRegistration, status);
+  const payload = templates.statusUpdate({ ...exampleRegistration, language: request.body.language === 'de' ? 'de' : 'tr' }, status);
   const result = await sendSafely('Testmail', payload, to, { replyTo: process.env.MAIL_REPLY_TO || CONTACT.email });
   if (!result) return response.status(502).json({ error: 'Testmail konnte nicht gesendet werden.' });
   return response.json({ success: true });

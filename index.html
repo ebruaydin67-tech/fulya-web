@@ -33,6 +33,13 @@
         </nav>
 
         <a class="button button-primary" href="#basvuru">Başvur</a>
+        <label class="language-picker" aria-label="Sprache / Dil">
+          <span class="visually-hidden">Sprache / Dil</span>
+          <select data-language-select aria-label="Sprache / Dil">
+            <option value="tr">🇹🇷 Türkçe</option>
+            <option value="de">🇩🇪 Deutsch</option>
+          </select>
+        </label>
       </div>
     </header>
 
@@ -327,7 +334,7 @@
                   <label for="cinsiyet">
                     Cinsiyet
                     <select id="cinsiyet" name="cinsiyet" required>
-                      <option value="">Bitte auswählen</option>
+                      <option value="">Seçiniz</option>
                       <option value="Kız">Kız</option>
                       <option value="Erkek">Erkek</option>
                     </select>
@@ -581,6 +588,7 @@
       </div>
     </footer>
 
+    <script src="locales.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

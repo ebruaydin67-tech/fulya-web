@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" data-page="admin">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -54,6 +54,13 @@
   <body>
     <main>
       <section id="login" class="panel">
+        <label class="language-picker">
+          <span class="visually-hidden">Sprache / Dil</span>
+          <select data-language-select aria-label="Sprache / Dil">
+            <option value="tr">🇹🇷 Türkçe</option>
+            <option value="de">🇩🇪 Deutsch</option>
+          </select>
+        </label>
         <h1>Başvurular yönetimi</h1>
         <p>Yönetim paneline girmek için şifrenizi yazın.</p>
         <form id="login-form">
@@ -69,6 +76,13 @@
             <h1>Başvurular</h1>
             <p>Yeni kayıtları buradan takip edebilirsiniz.</p>
           </div>
+          <label class="language-picker">
+            <span class="visually-hidden">Sprache / Dil</span>
+            <select data-language-select aria-label="Sprache / Dil">
+              <option value="tr">🇹🇷 Türkçe</option>
+              <option value="de">🇩🇪 Deutsch</option>
+            </select>
+          </label>
           <button id="logout">Çıkış yap</button>
         </div>
 
@@ -101,7 +115,7 @@
               <thead>
                 <tr>
                   <th><button type="button" data-sort-group="Grup 1" data-sort-key="created_at">Tarih <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="name">Çocuk <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="gender">Cinsiyet <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="birth_date">Doğum tarihi <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 1" data-sort-key="class_level">Sınıf <span class="sort-indicator"></span></button></th>
-                  <th>Anne</th><th>Baba</th><th>Straße</th><th>PLZ</th><th>Stadt</th>
+                  <th>Anne</th><th>Baba</th><th>Sokak</th><th>PLZ</th><th>Şehir</th>
                   <th>E-posta</th><th>Telefon</th><th>Alerji</th><th>Fotoğraf</th><th><button type="button" data-sort-group="Grup 1" data-sort-key="status">Durum <span class="sort-indicator"></span></button></th><th>İşlem</th>
                 </tr>
               </thead>
@@ -126,7 +140,7 @@
               <thead>
                 <tr>
                   <th><button type="button" data-sort-group="Grup 2" data-sort-key="created_at">Tarih <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="name">Çocuk <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="gender">Cinsiyet <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="birth_date">Doğum tarihi <span class="sort-indicator"></span></button></th><th><button type="button" data-sort-group="Grup 2" data-sort-key="class_level">Sınıf <span class="sort-indicator"></span></button></th>
-                  <th>Anne</th><th>Baba</th><th>Straße</th><th>PLZ</th><th>Stadt</th>
+                  <th>Anne</th><th>Baba</th><th>Sokak</th><th>PLZ</th><th>Şehir</th>
                   <th>E-posta</th><th>Telefon</th><th>Alerji</th><th>Fotoğraf</th><th><button type="button" data-sort-group="Grup 2" data-sort-key="status">Durum <span class="sort-indicator"></span></button></th><th>İşlem</th>
                 </tr>
               </thead>
@@ -138,6 +152,7 @@
       </section>
     </main>
 
+    <script src="locales.js"></script>
     <script src="admin.js"></script>
   </body>
 </html>

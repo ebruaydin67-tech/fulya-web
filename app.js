@@ -94,6 +94,9 @@
   const form = document.querySelector('.register-form');
   if (!form) return;
 
+  const locale = window.FulyaLocale;
+  const t = (message) => locale ? locale.t(message) : message;
+
   const MIN_AGE = 6;
   const MAX_AGE = 8;
 
@@ -248,21 +251,21 @@
   /* ---------- Feldvalidierung (am Blur) ---------- */
   const fieldMessage = (input) => {
     if (input.type === 'checkbox') {
-      return input.checked ? '' : 'Devam etmek için bu izin gerekli.';
+      return input.checked || !input.required ? '' : t('Devam etmek için bu izin gerekli.');
     }
 
     const value = input.value.trim();
-    if (input.required && !value) return 'Bu alan zorunlu.';
+    if (input.required && !value) return t('Bu alan zorunlu.');
     if (!value) return '';
 
     if (input.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
-      return 'Geçerli bir e-posta adresi girin. Örnek: isim@email.com';
+      return t('Geçerli bir e-posta adresi girin. Örnek: isim@email.com');
     }
     if (input.type === 'tel' && value.replace(/\D/g, '').length < 7) {
-      return 'Telefon numarasını eksiksiz girin.';
+      return t('Telefon numarasını eksiksiz girin.');
     }
     if (input.name === 'adres_plz' && !/^\d{5}$/.test(value.replace(/\s/g, ''))) {
-      return 'Posta kodu 5 haneli olmalı. Örnek: 42859';
+      return t('Posta kodu 5 haneli olmalı. Örnek: 42859');
     }
     return '';
   };
@@ -313,17 +316,17 @@
     }
 
     if (!value) {
-      setStatus('Devam etmek için çocuğunuzun doğum tarihini seçin.', 'neutral');
+      setStatus(t('Devam etmek için çocuğunuzun doğum tarihini seçin.'), 'neutral');
     } else if (age === null) {
-      setStatus('Bu tarih okunamadı. Lütfen tekrar seçin.', 'error');
+      setStatus(t('Bu tarih okunamadı. Lütfen tekrar seçin.'), 'error');
     } else if (!eligible) {
-      const direction = age < MIN_AGE ? 'küçük' : 'büyük';
+      const direction = age < MIN_AGE ? t('küçük') : t('büyük');
       setStatus(
-        `Çocuğunuz bu program için ${direction} (${age} yaş). Kayıt 6–8 yaş arası ve okula başlamış çocuklar içindir.`,
+        `${t('Çocuğunuz bu program için')} ${direction} (${age} ${t('yaş')}). ${t('Kayıt 6–8 yaş arası ve okula başlamış çocuklar içindir.')}`,
         'error'
       );
     } else {
-      setStatus(`Yaş uygun (${age} yaş). Devam edebilirsiniz.`, 'success');
+      setStatus(`${t('Yaş uygun')} (${age} ${t('yaş')}). ${t('Devam edebilirsiniz.')}`, 'success');
     }
 
     return eligible;
@@ -380,7 +383,7 @@
     if (!value) return '';
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' });
+    return date.toLocaleDateString(locale?.language === 'de' ? 'de-DE' : 'tr-TR', { day: '2-digit', month: 'long', year: 'numeric' });
   }
 
   const buildSummary = () => {
@@ -392,11 +395,12 @@
 
     summaryList.innerHTML = '';
     SUMMARY_ROWS.forEach((row) => {
-      const value = row.build(get);
+      const rawValue = row.build(get);
+      const value = row.label === 'Cinsiyet' ? t(rawValue) : rawValue;
       if (!value) return;
 
       const dt = document.createElement('dt');
-      dt.textContent = row.label;
+      dt.textContent = t(row.label);
       const dd = document.createElement('dd');
       dd.textContent = value;
 
@@ -447,8 +451,8 @@
     if (!submitButtonEl) return;
     submitButtonEl.disabled = loading;
     submitButtonEl.innerHTML = loading
-      ? '<span class="spinner" aria-hidden="true"></span> Gönderiliyor…'
-      : 'Başvuruyu gönder';
+      ? `<span class="spinner" aria-hidden="true"></span> ${t('Gönderiliyor…')}`
+      : t('Başvuruyu gönder');
   };
 
   const showTransferStep = () => {
@@ -482,7 +486,7 @@
     for (let step = 2; step <= LAST_INPUT_STEP; step += 1) {
       if (!validateStep(step)) {
         if (currentStep !== step) showStep(step);
-        setSubmitStatus('Lütfen eksik alanları tamamlayın.', 'error');
+        setSubmitStatus(t('Lütfen eksik alanları tamamlayın.'), 'error');
         return;
       }
     }
@@ -504,7 +508,16 @@
       .join(', ');
 
     setLoading(true);
-    setSubmitStatus('Başvurunuz gönderiliyor…', 'neutral');
+    setSubmitStatus(t('Başvurunuz gönderiliyor…'), 'neutral');
+
+    let languageField = form.querySelector('input[name="language"]');
+    if (!languageField) {
+      languageField = document.createElement('input');
+      languageField.type = 'hidden';
+      languageField.name = 'language';
+      form.appendChild(languageField);
+    }
+    languageField.value = locale ? locale.language : 'tr';
 
     try {
       const response = await fetch(registrationApiUrl, {
@@ -515,7 +528,7 @@
 
       if (!response.ok) {
         const result = await response.json().catch(() => ({}));
-        setSubmitStatus(result.error || 'Başvuru kaydedilemedi. Lütfen tekrar deneyin.', 'error');
+        setSubmitStatus(result.error || t('Başvuru kaydedilemedi. Lütfen tekrar deneyin.'), 'error');
         setLoading(false);
         return;
       }
@@ -524,7 +537,7 @@
       showTransferStep();
     } catch (error) {
       setSubmitStatus(
-        'Bağlantı kurulamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.',
+        t('Bağlantı kurulamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.'),
         'error'
       );
       setLoading(false);
@@ -543,14 +556,28 @@
 
       try {
         await navigator.clipboard.writeText(iban);
-        copyButton.textContent = 'Kopyalandı';
+        copyButton.textContent = t('Kopyalandı');
+        copyButton.dataset.copied = 'true';
       } catch (error) {
-        copyButton.textContent = 'Kopyalanamadı';
+        copyButton.textContent = t('Kopyalanamadı');
+        copyButton.dataset.copied = 'false';
       }
 
       setTimeout(() => {
         copyButton.innerHTML = original;
+        delete copyButton.dataset.copied;
       }, 1800);
     });
   }
+
+  window.addEventListener('fulya:languagechange', () => {
+    if (currentStep === 1 && birthDateInput && birthDateInput.value) updateAgeGate();
+    if (currentStep === LAST_INPUT_STEP) buildSummary();
+    form.querySelectorAll('.field.has-error input, .field.has-error textarea, .field.has-error select').forEach((input) => validateField(input));
+    if (submitStatus?.classList.contains('is-shown')) {
+      const isFailure = submitStatus.classList.contains('is-error');
+      setSubmitStatus(isFailure ? t('Lütfen eksik alanları tamamlayın.') : t('Başvurunuz gönderiliyor…'), isFailure ? 'error' : 'neutral');
+    }
+    if (copyButton && copyButton.dataset.copied === 'true') copyButton.textContent = t('Kopyalandı');
+  });
 })();
